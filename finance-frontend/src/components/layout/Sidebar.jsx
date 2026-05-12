@@ -3,7 +3,7 @@ import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard, CreditCard, PiggyBank, Target, RefreshCcw,
-  BarChart2, Bot, Settings, LogOut, Menu, X, Sparkles
+  BarChart2, Bot, Settings, LogOut, Menu, X, Sparkles, MessageSquare
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -34,6 +34,7 @@ const Sidebar = () => {
     { to: "/recurring", icon: RefreshCcw, label: t("nav.recurring") },
     { to: "/reports", icon: BarChart2, label: t("nav.reports") },
     { to: "/ai-assistant", icon: Bot, label: t("nav.ai_assistant") },
+    { to: "/sms-import", icon: MessageSquare, label: "SMS Import" },
   ];
 
   return (

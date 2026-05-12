@@ -10,6 +10,7 @@ import RecurringPage from "./pages/RecurringPage";
 import ReportsPage from "./pages/ReportsPage";
 import AIAssistantPage from "./pages/AIAssistantPage";
 import SettingsPage from "./pages/SettingsPage";
+import SMSImportPage from "./pages/SMSImportPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AppLayout from "./components/layout/AppLayout";
@@ -31,6 +32,7 @@ function App() {
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/ai-assistant" element={<AIAssistantPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/sms-import" element={<SMSImportPage />} />
           </Route>
         </Route>
       </Routes>
