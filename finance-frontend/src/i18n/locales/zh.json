@@ -1,0 +1,10 @@
+{
+  "nav": { "dashboard": "仪表板", "transactions": "交易", "budgets": "预算", "goals": "目标", "recurring": "周期性", "reports": "报告", "ai_assistant": "AI助手", "settings": "设置", "logout": "退出登录" },
+  "dashboard": { "title": "财务仪表板", "welcome": "欢迎回来", "total_income": "总收入", "total_expense": "总支出", "net_savings": "净储蓄", "recent_transactions": "最近交易", "expense_by_category": "按类别支出", "spending_trend": "支出趋势", "income_vs_expense": "收入 vs 支出" },
+  "transactions": { "title": "交易", "add": "添加交易", "search": "搜索...", "export": "导出CSV", "type": "类型", "category": "类别", "amount": "金额", "date": "日期", "description": "描述", "income": "收入", "expense": "支出", "delete": "删除", "edit": "编辑", "no_transactions": "未找到交易" },
+  "budgets": { "title": "预算", "add": "添加预算", "limit": "限额", "spent": "已花费", "remaining": "剩余", "exceeded": "超出", "within_budget": "在预算内", "warning": "警告", "alert_threshold": "警告于", "no_budgets": "本月无预算" },
+  "goals": { "title": "储蓄目标", "add": "新目标", "target": "目标", "saved": "已存", "deadline": "截止日期", "contribute": "添加储蓄", "completed": "已完成", "no_goals": "暂无储蓄目标" },
+  "ai": { "title": "AI助手", "placeholder": "询问关于您财务的任何问题...", "send": "发送", "score": "财务评分", "recommendations": "建议", "subscriptions": "检测到的订阅", "forecast": "下月预测", "thinking": "思考中...", "premium_only": "AI功能需要Premium" },
+  "settings": { "title": "设置", "profile": "个人资料", "name": "全名", "email": "电子邮件", "monthly_income": "月收入", "currency": "首选货币", "language": "语言", "change_password": "修改密码", "current_password": "当前密码", "new_password": "新密码", "save": "保存更改", "saved": "更改已保存！" },
+  "common": { "loading": "加载中...", "error": "出了点问题", "save": "保存", "cancel": "取消", "delete": "删除", "edit": "编辑", "confirm": "确认", "close": "关闭", "month": "月", "year": "年", "all_time": "所有时间", "this_month": "本月", "last_month": "上个月", "this_year": "今年", "upgrade": "升级到Premium" }
+}

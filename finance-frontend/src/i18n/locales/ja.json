@@ -1,0 +1,10 @@
+{
+  "nav": { "dashboard": "ダッシュボード", "transactions": "取引", "budgets": "予算", "goals": "目標", "recurring": "定期", "reports": "レポート", "ai_assistant": "AIアシスタント", "settings": "設定", "logout": "ログアウト" },
+  "dashboard": { "title": "財務ダッシュボード", "welcome": "おかえりなさい", "total_income": "総収入", "total_expense": "総支出", "net_savings": "純貯蓄", "recent_transactions": "最近の取引", "expense_by_category": "カテゴリ別支出", "spending_trend": "支出トレンド", "income_vs_expense": "収入 vs 支出" },
+  "transactions": { "title": "取引", "add": "取引を追加", "search": "検索...", "export": "CSVエクスポート", "type": "タイプ", "category": "カテゴリ", "amount": "金額", "date": "日付", "description": "説明", "income": "収入", "expense": "支出", "delete": "削除", "edit": "編集", "no_transactions": "取引が見つかりません" },
+  "budgets": { "title": "予算", "add": "予算を追加", "limit": "上限", "spent": "使用済み", "remaining": "残り", "exceeded": "超過", "within_budget": "予算内", "warning": "警告", "alert_threshold": "警告", "no_budgets": "今月の予算なし" },
+  "goals": { "title": "貯蓄目標", "add": "新しい目標", "target": "目標", "saved": "貯蓄済み", "deadline": "締切", "contribute": "貯蓄を追加", "completed": "完了", "no_goals": "貯蓄目標なし" },
+  "ai": { "title": "AIアシスタント", "placeholder": "財務について質問してください...", "send": "送信", "score": "財務スコア", "recommendations": "推奨事項", "subscriptions": "検出されたサブスクリプション", "forecast": "来月の予測", "thinking": "考え中...", "premium_only": "AI機能にはPremiumが必要" },
+  "settings": { "title": "設定", "profile": "プロフィール", "name": "フルネーム", "email": "メール", "monthly_income": "月収", "currency": "優先通貨", "language": "言語", "change_password": "パスワード変更", "current_password": "現在のパスワード", "new_password": "新しいパスワード", "save": "変更を保存", "saved": "変更が保存されました！" },
+  "common": { "loading": "読み込み中...", "error": "エラーが発生しました", "save": "保存", "cancel": "キャンセル", "delete": "削除", "edit": "編集", "confirm": "確認", "close": "閉じる", "month": "月", "year": "年", "all_time": "全期間", "this_month": "今月", "last_month": "先月", "this_year": "今年", "upgrade": "Premiumにアップグレード" }
+}
