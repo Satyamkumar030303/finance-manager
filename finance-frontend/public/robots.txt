@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /login
+Disallow: /register
+Disallow: /transactions
+Disallow: /budgets
+Disallow: /goals
+Disallow: /settings
+Disallow: /reports
+Disallow: /ai-assistant
+Disallow: /recurring
+
+Allow: /
+
+Sitemap: https://yourdomain.com/sitemap.xml
