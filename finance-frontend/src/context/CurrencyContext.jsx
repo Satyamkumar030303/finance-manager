@@ -3,8 +3,6 @@ import { AuthContext } from "./AuthContext";
 
 export const CurrencyContext = createContext();
 
-// Static approximate rates relative to INR (updated manually or via API)
-// These serve as a fallback when no exchange rate API key is configured
 const STATIC_RATES_FROM_INR = {
   INR: 1,
   USD: 0.012,
@@ -18,17 +16,16 @@ const STATIC_RATES_FROM_INR = {
   CAD: 0.016,
 };
 
-const CURRENCY_SYMBOLS = {
-  INR: "₹",
-  USD: "$",
-  EUR: "€",
-  GBP: "£",
-  JPY: "¥",
-  AED: "د.إ",
-  SAR: "﷼",
-  SGD: "S$",
-  AUD: "A$",
-  CAD: "C$",
+export const CURRENCY_SYMBOLS = {
+  INR: "₹", USD: "$", EUR: "€", GBP: "£", JPY: "¥",
+  AED: "د.إ", SAR: "﷼", SGD: "S$", AUD: "A$", CAD: "C$",
+};
+
+// Appropriate display locale per currency
+const CURRENCY_LOCALE = {
+  INR: "en-IN", USD: "en-US", EUR: "de-DE", GBP: "en-GB",
+  JPY: "ja-JP", AED: "ar-AE", SAR: "ar-SA", SGD: "en-SG",
+  AUD: "en-AU", CAD: "en-CA",
 };
 
 export const CurrencyProvider = ({ children }) => {
@@ -36,44 +33,54 @@ export const CurrencyProvider = ({ children }) => {
   const [currency, setCurrency] = useState("INR");
   const [rates, setRates] = useState(STATIC_RATES_FROM_INR);
 
-  // Sync with user's preferred currency
   useEffect(() => {
-    if (user?.preferredCurrency) {
-      setCurrency(user.preferredCurrency);
-    }
+    if (user?.preferredCurrency) setCurrency(user.preferredCurrency);
   }, [user?.preferredCurrency]);
 
   // Convert amount from INR to target currency
   const convert = useCallback(
-    (amountInINR, targetCurrency = currency) => {
-      const rate = rates[targetCurrency] || 1;
-      return amountInINR * rate;
-    },
+    (amountInINR, targetCurrency = currency) => amountInINR * (rates[targetCurrency] || 1),
     [currency, rates]
   );
 
-  // Format a number as currency string
+  // Full formatted currency string (e.g. "₹1,23,456.00" or "$1,481.37")
   const format = useCallback(
     (amountInINR, targetCurrency = currency) => {
       const converted = convert(amountInINR, targetCurrency);
-      const symbol = CURRENCY_SYMBOLS[targetCurrency] || targetCurrency;
+      const locale = CURRENCY_LOCALE[targetCurrency] || "en-US";
       try {
-        return new Intl.NumberFormat("en-IN", {
+        return new Intl.NumberFormat(locale, {
           style: "currency",
           currency: targetCurrency,
-          maximumFractionDigits: 2,
+          maximumFractionDigits: targetCurrency === "JPY" ? 0 : 2,
         }).format(converted);
       } catch {
-        return `${symbol}${converted.toFixed(2)}`;
+        return `${CURRENCY_SYMBOLS[targetCurrency] || targetCurrency}${converted.toFixed(2)}`;
       }
     },
     [convert, currency]
   );
 
+  // Compact format for chart axis ticks: "$5k", "₹5k"
+  const compact = useCallback(
+    (amountInINR, targetCurrency = currency) => {
+      const converted = convert(amountInINR, targetCurrency);
+      const sym = CURRENCY_SYMBOLS[targetCurrency] || targetCurrency;
+      const abs = Math.abs(converted);
+      if (abs >= 1_000_000) return `${sym}${(converted / 1_000_000).toFixed(1)}M`;
+      if (abs >= 1_000)     return `${sym}${(converted / 1_000).toFixed(0)}k`;
+      return `${sym}${converted.toFixed(0)}`;
+    },
+    [convert, currency]
+  );
+
+  // Shorthand: format with current currency
+  const fmt = useCallback((amountInINR) => format(amountInINR), [format]);
+
   const symbol = CURRENCY_SYMBOLS[currency] || currency;
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, convert, format, symbol, rates }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, convert, format, fmt, compact, symbol, rates }}>
       {children}
     </CurrencyContext.Provider>
   );

@@ -5,8 +5,10 @@ import toast from "react-hot-toast";
 import { MessageSquare, CheckCircle, AlertCircle, Plus } from "lucide-react";
 import { parseSMS, getQueue, enqueueTransaction, flushQueue } from "../services/sms.service";
 import api from "../api/axios";
+import { useCurrency } from "../context/CurrencyContext";
 
 export default function SMSImportPage() {
+  const { fmt } = useCurrency();
   const queryClient = useQueryClient();
   const [smsText, setSmsText] = useState("");
   const [parsed, setParsed] = useState(null);
@@ -130,7 +132,7 @@ export default function SMSImportPage() {
               </div>
               <div>
                 <p className="text-gray-500">Amount</p>
-                <p className="font-semibold text-gray-800">₹{parsed.amount?.toLocaleString("en-IN")}</p>
+                <p className="font-semibold text-gray-800">{fmt(parsed.amount)}</p>
               </div>
               <div>
                 <p className="text-gray-500">Category</p>

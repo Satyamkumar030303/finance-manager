@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import { CurrencyProvider } from "./context/CurrencyContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { HelmetProvider } from "react-helmet-async";
 import "./i18n/index.js";
 
@@ -23,14 +24,29 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CurrencyProvider>
-            <App />
-            <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
-          </CurrencyProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <CurrencyProvider>
+              <App />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: "var(--toast-bg, #fff)",
+                    color: "var(--toast-color, #111)",
+                    borderRadius: "12px",
+                    border: "1px solid var(--toast-border, #e5e7eb)",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    fontSize: "14px",
+                  },
+                }}
+              />
+            </CurrencyProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </HelmetProvider>
   </React.StrictMode>
 );

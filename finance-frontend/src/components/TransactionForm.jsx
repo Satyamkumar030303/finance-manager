@@ -1,186 +1,191 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { Plus, Pencil, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useCreateTransaction } from "../hooks/useCreateTransaction";
 import { useUpdateTransaction } from "../hooks/useUpdateTransaction";
+import { useCurrency } from "../context/CurrencyContext";
 
-const categories = ["Food", "Travel", "Shopping", "Salary", "Bills"];
+const CATEGORIES = [
+  "Food", "Travel", "Shopping", "Salary", "Bills",
+  "Entertainment", "Health", "Education", "Investment", "Miscellaneous",
+];
 
-const TransactionForm = ({ editing, setEditing }) => {
+const EMPTY = {
+  amount: "",
+  type: "expense",
+  category: "Food",
+  transactionDate: new Date().toISOString().split("T")[0],
+  description: "",
+};
 
-  const { mutate: createTx, isLoading } = useCreateTransaction();
-  const { mutate: updateTx } = useUpdateTransaction();
+export default function TransactionForm({ editing, setEditing }) {
+  const { t } = useTranslation();
+  const { symbol } = useCurrency();
+  const { mutate: createTx, isPending: creating } = useCreateTransaction();
+  const { mutate: updateTx, isPending: updating } = useUpdateTransaction();
 
-  const [form, setForm] = useState({
-    amount: "",
-    type: "expense",
-    category: "Food",
-    transactionDate: "",
-    description: "",
-  });
+  const [form, setForm] = useState(EMPTY);
 
   useEffect(() => {
-
     if (editing) {
       setForm({
-        amount: editing.amount || "",
-        type: editing.type || "expense",
-        category: editing.category || "Food",
+        amount: editing.amount ?? "",
+        type: editing.type ?? "expense",
+        category: editing.category ?? "Food",
         transactionDate: editing.transactionDate
           ? editing.transactionDate.split("T")[0]
-          : "",
-        description: editing.description || "",
+          : new Date().toISOString().split("T")[0],
+        description: editing.description ?? "",
       });
+    } else {
+      setForm(EMPTY);
     }
-
   }, [editing]);
 
-  const handleChange = (e) => {
-
-    const { name, value } = e.target;
-
-    setForm({
-      ...form,
-      [name]: name === "amount" ? Number(value) : value,
-    });
-  };
-
-  const resetForm = () => {
-
-    setForm({
-      amount: "",
-      type: "expense",
-      category: "Food",
-      transactionDate: "",
-      description: "",
-    });
-  };
+  const set = (field) => (e) =>
+    setForm((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }));
 
   const handleSubmit = (e) => {
-
     e.preventDefault();
-
-    if (!form.amount || !form.category || !form.transactionDate) {
-      alert("Please fill all required fields");
+    const amount = parseFloat(form.amount);
+    if (!amount || amount <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    if (!form.transactionDate) {
+      toast.error("Please select a date");
       return;
     }
 
-    if (editing) {
+    const payload = { ...form, amount };
 
+    if (editing) {
       updateTx(
-        { id: editing._id, payload: form },
+        { id: editing._id, payload },
         {
           onSuccess: () => {
-            resetForm();
+            toast.success("Transaction updated");
             setEditing(null);
           },
+          onError: () => toast.error("Failed to update transaction"),
         }
       );
-
     } else {
-
-      createTx(form, {
+      createTx(payload, {
         onSuccess: () => {
-          resetForm();
+          toast.success("Transaction added");
+          setForm(EMPTY);
         },
+        onError: () => toast.error("Failed to add transaction"),
       });
-
     }
-
   };
 
+  const isLoading = creating || updating;
+
   return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        {/* Amount */}
+        <div>
+          <label className="label">{t("transactions.amount")} ({symbol})</label>
+          <input
+            type="number"
+            name="amount"
+            value={form.amount}
+            onChange={set("amount")}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            className="input"
+            required
+          />
+        </div>
 
-    <form
-      onSubmit={handleSubmit}
-      className="grid grid-cols-1 md:grid-cols-5 gap-4"
-    >
+        {/* Type */}
+        <div>
+          <label className="label">{t("transactions.type")}</label>
+          <select
+            name="type"
+            value={form.type}
+            onChange={set("type")}
+            className="input"
+          >
+            <option value="expense">{t("transactions.expense")}</option>
+            <option value="income">{t("transactions.income")}</option>
+          </select>
+        </div>
 
-      <input
-        type="number"
-        name="amount"
-        value={form.amount}
-        placeholder="Amount"
-        onChange={handleChange}
-        className="border rounded-lg px-3 py-2"
-      />
+        {/* Category */}
+        <div>
+          <label className="label">{t("transactions.category")}</label>
+          <select
+            name="category"
+            value={form.category}
+            onChange={set("category")}
+            className="input"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>{t(`categories.${c.toLowerCase()}`, c)}</option>
+            ))}
+          </select>
+        </div>
 
-      <select
-        name="type"
-        value={form.type}
-        onChange={handleChange}
-        className="border rounded-lg px-3 py-2"
-      >
-        <option value="expense">Expense</option>
-        <option value="income">Income</option>
-      </select>
-
-       <select
-        name="category"
-        value={form.category}
-        onChange={handleChange}
-        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-      >
-
-      <option value="">Select Category</option>
-
-      <option value="Miscellaneous">Salary</option>
-      <option value="Food">Food</option>
-      <option value="Travel">Travel</option>
-      <option value="Shopping">Shopping</option>
-      <option value="Bills">Bills</option>
-      <option value="Entertainment">Entertainment</option>
-      <option value="Health">Health</option>
-      <option value="Education">Education</option>
-      <option value="Miscellaneous">Miscellaneous</option>
-
-      </select>
-
+        {/* Date */}
+        <div>
+          <label className="label">{t("transactions.date")}</label>
           <input
             type="date"
             name="transactionDate"
             value={form.transactionDate}
-            onChange={handleChange}
-            className="border rounded-lg px-3 py-2"
-         />
+            onChange={set("transactionDate")}
+            className="input"
+            required
+          />
+        </div>
 
-      <input
-        type="text"
-        name="description"
-        value={form.description}
-        placeholder="Description"
-        onChange={handleChange}
-        className="border rounded-lg px-3 py-2"
-      />
+        {/* Description */}
+        <div>
+          <label className="label">{t("transactions.description")}</label>
+          <input
+            type="text"
+            name="description"
+            value={form.description}
+            onChange={set("description")}
+            placeholder={t("common.optional_note")}
+            className="input"
+            maxLength={120}
+          />
+        </div>
+      </div>
 
-      <div className="md:col-span-5 flex gap-3 mt-2">
-
+      {/* Actions */}
+      <div className="flex items-center gap-3 pt-1">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
+          disabled={isLoading}
+          className="btn-primary"
         >
+          {editing ? <Pencil size={15} /> : <Plus size={15} />}
           {editing
-            ? "Update Transaction"
-            : isLoading
-            ? "Adding..."
-            : "Add Transaction"}
+            ? updating ? t("common.saving") : t("common.save_changes")
+            : creating ? t("common.adding") : t("common.add_transaction")}
         </button>
 
         {editing && (
           <button
             type="button"
-            onClick={() => {
-              resetForm();
-              setEditing(null);
-            }}
-            className="bg-gray-400 text-white px-5 py-2 rounded-lg"
+            onClick={() => setEditing(null)}
+            className="btn-secondary"
           >
-            Cancel
+            <X size={15} /> {t("common.cancel")}
           </button>
         )}
-
       </div>
-
     </form>
   );
-};
-
-export default TransactionForm;
+}

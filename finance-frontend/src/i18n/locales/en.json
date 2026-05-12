@@ -35,7 +35,12 @@
     "expense": "Expense",
     "delete": "Delete",
     "edit": "Edit",
-    "no_transactions": "No transactions found"
+    "no_transactions": "No transactions found",
+    "deleted": "Transaction deleted",
+    "all_types": "All Types",
+    "all_categories": "All Categories",
+    "search_placeholder": "Search by description or category...",
+    "add_to_manage": "Add, filter, and manage your transactions"
   },
   "budgets": {
     "title": "Budgets",
@@ -47,7 +52,13 @@
     "within_budget": "Within Budget",
     "warning": "Warning",
     "alert_threshold": "Alert at",
-    "no_budgets": "No budgets set for this month"
+    "no_budgets": "No budgets set for this month",
+    "edit": "Edit Budget",
+    "new": "New Budget",
+    "track_limits": "Track your spending limits by category",
+    "create_first": "Create your first budget",
+    "save": "Save Budget",
+    "delete_confirm": "Delete this budget?"
   },
   "goals": {
     "title": "Savings Goals",
@@ -57,7 +68,42 @@
     "deadline": "Deadline",
     "contribute": "Add Savings",
     "completed": "Completed",
-    "no_goals": "No savings goals yet"
+    "no_goals": "No savings goals yet",
+    "edit": "Edit Goal",
+    "new": "New Savings Goal",
+    "goal_name": "Goal Name",
+    "target_amount": "Target Amount",
+    "deadline_optional": "Deadline (optional)",
+    "days_left": "days left",
+    "overdue": "Overdue",
+    "achieved": "Goal achieved!",
+    "active": "Active Goals",
+    "completed_section": "Completed Goals",
+    "create_first": "Create your first goal",
+    "save": "Save Goal",
+    "delete_confirm": "Delete this goal?",
+    "pct_complete": "complete",
+    "contribute_to": "Add to"
+  },
+  "recurring": {
+    "title": "Recurring Transactions",
+    "add": "Add Recurring",
+    "edit": "Edit Recurring",
+    "new": "New Recurring Transaction",
+    "no_recurring": "No recurring transactions yet",
+    "add_first": "Add your first recurring transaction",
+    "active": "Active",
+    "paused": "Paused",
+    "next_due": "Next due",
+    "amount": "Amount",
+    "frequency": "Frequency",
+    "active_count": "active recurring transactions"
+  },
+  "frequencies": {
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly"
   },
   "ai": {
     "title": "AI Assistant",
@@ -68,7 +114,17 @@
     "subscriptions": "Detected Subscriptions",
     "forecast": "Next Month Forecast",
     "thinking": "Thinking...",
-    "premium_only": "AI features require Premium"
+    "premium_only": "AI features require Premium",
+    "financial_score": "Financial Health Score",
+    "quick_actions": "Quick Actions",
+    "analyze_spending": "Analyze Spending",
+    "predict_next_month": "Predict Next Month",
+    "detect_subscriptions": "Detect Subscriptions",
+    "greeting": "Hi! I'm your AI financial assistant. Ask me anything about your spending, savings, or get personalized tips. Use the quick actions below to get started.",
+    "analysis_unavailable": "Analysis unavailable right now. Try again later.",
+    "no_subscriptions": "No recurring subscriptions detected in your recent transactions.",
+    "recurring_impact": "Estimated monthly impact",
+    "ask_placeholder": "Ask about your finances…"
   },
   "settings": {
     "title": "Settings",
@@ -99,6 +155,64 @@
     "this_month": "This Month",
     "last_month": "Last Month",
     "this_year": "This Year",
-    "upgrade": "Upgrade to Premium"
+    "upgrade": "Upgrade to Premium",
+    "undo": "Undo",
+    "clear_filters": "Clear filters",
+    "export_csv": "Export CSV",
+    "optional_note": "Optional note",
+    "saving": "Saving...",
+    "adding": "Adding...",
+    "add": "Add",
+    "save_changes": "Save Changes",
+    "add_transaction": "Add Transaction",
+    "edit_transaction": "Edit Transaction",
+    "no_data": "No data for this period",
+    "active_goals": "active goals"
+  },
+  "categories": {
+    "food": "Food",
+    "transport": "Transport",
+    "shopping": "Shopping",
+    "entertainment": "Entertainment",
+    "utilities": "Utilities",
+    "health": "Health",
+    "education": "Education",
+    "finance": "Finance",
+    "telecom": "Telecom",
+    "travel": "Travel",
+    "salary": "Salary",
+    "miscellaneous": "Miscellaneous",
+    "bills": "Bills",
+    "investment": "Investment",
+    "general": "General"
+  },
+  "insights": {
+    "title": "Smart Insights",
+    "savings_rate": "Savings rate",
+    "target": "Target: 20%+",
+    "no_income": "No income recorded this period.",
+    "great_savings": "Great job! You're saving",
+    "low_savings": "Your savings rate is low at",
+    "low_savings_target": "Try to target 20%+.",
+    "top_category": "Biggest spending category:",
+    "high_spend": "You're spending",
+    "high_spend_tail": "of your income. Cut back to build a buffer.",
+    "overspending": "You're spending more than you earn. Review your budget.",
+    "add_more": "Add more transactions to unlock personalized insights.",
+    "of_income": "of your income."
+  },
+  "reports": {
+    "title": "Reports",
+    "monthly_trends": "Monthly Trends",
+    "category_breakdown": "Category Breakdown",
+    "no_category_data": "No category data for this period",
+    "no_trend_data": "No trend data available"
+  },
+  "sms": {
+    "title": "SMS Import",
+    "detected": "Detected",
+    "amount": "Amount",
+    "type": "Type",
+    "category": "Category"
   }
 }

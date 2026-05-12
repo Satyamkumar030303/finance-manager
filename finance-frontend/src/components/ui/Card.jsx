@@ -1,4 +1,7 @@
+import { useCurrency } from "../../context/CurrencyContext";
+
 const Card = ({ title, value }) => {
+  const { fmt } = useCurrency();
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
 
@@ -7,7 +10,7 @@ const Card = ({ title, value }) => {
       </p>
 
       <h2 className="text-3xl font-bold mt-2">
-        ₹{value}
+        {fmt(value || 0)}
       </h2>
 
     </div>

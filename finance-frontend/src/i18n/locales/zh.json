@@ -6,5 +6,7 @@
   "goals": { "title": "储蓄目标", "add": "新目标", "target": "目标", "saved": "已存", "deadline": "截止日期", "contribute": "添加储蓄", "completed": "已完成", "no_goals": "暂无储蓄目标" },
   "ai": { "title": "AI助手", "placeholder": "询问关于您财务的任何问题...", "send": "发送", "score": "财务评分", "recommendations": "建议", "subscriptions": "检测到的订阅", "forecast": "下月预测", "thinking": "思考中...", "premium_only": "AI功能需要Premium" },
   "settings": { "title": "设置", "profile": "个人资料", "name": "全名", "email": "电子邮件", "monthly_income": "月收入", "currency": "首选货币", "language": "语言", "change_password": "修改密码", "current_password": "当前密码", "new_password": "新密码", "save": "保存更改", "saved": "更改已保存！" },
-  "common": { "loading": "加载中...", "error": "出了点问题", "save": "保存", "cancel": "取消", "delete": "删除", "edit": "编辑", "confirm": "确认", "close": "关闭", "month": "月", "year": "年", "all_time": "所有时间", "this_month": "本月", "last_month": "上个月", "this_year": "今年", "upgrade": "升级到Premium" }
+  "common": { "loading": "加载中...", "error": "出了点问题", "save": "保存", "cancel": "取消", "delete": "删除", "edit": "编辑", "confirm": "确认", "close": "关闭", "month": "月", "year": "年", "all_time": "所有时间", "this_month": "本月", "last_month": "上个月", "this_year": "今年", "upgrade": "升级到Premium", "undo": "撤销", "clear_filters": "清除筛选" },
+  "categories": { "food": "餐饮", "transport": "交通", "shopping": "购物", "entertainment": "娱乐", "utilities": "水电费", "health": "健康", "education": "教育", "finance": "金融", "telecom": "通信", "travel": "旅行", "salary": "工资", "miscellaneous": "其他", "bills": "账单", "investment": "投资", "general": "一般" },
+  "frequencies": { "daily": "每天", "weekly": "每周", "monthly": "每月", "yearly": "每年" }
 }

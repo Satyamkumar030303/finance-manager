@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { TrendingUp, TrendingDown, PiggyBank, Download } from "lucide-react";
+import { useCurrency } from "../context/CurrencyContext";
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
@@ -13,6 +14,7 @@ const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function StatCard({ label, value, icon: Icon, color }) {
+  const { fmt } = useCurrency();
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
@@ -20,7 +22,7 @@ function StatCard({ label, value, icon: Icon, color }) {
       </div>
       <div>
         <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-xl font-bold text-gray-800">₹{value?.toLocaleString("en-IN") || 0}</p>
+        <p className="text-xl font-bold text-gray-800">{fmt(value || 0)}</p>
       </div>
     </div>
   );
@@ -28,6 +30,7 @@ function StatCard({ label, value, icon: Icon, color }) {
 
 export default function ReportsPage() {
   const { t } = useTranslation();
+  const { fmt, compact } = useCurrency();
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
@@ -153,7 +156,7 @@ export default function ReportsPage() {
                       <Pie data={catData} dataKey="total" nameKey="_id" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
                         {catData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip formatter={(v) => `₹${v?.toLocaleString("en-IN")}`} />
+                      <Tooltip formatter={(v) => fmt(v)} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -169,8 +172,8 @@ export default function ReportsPage() {
                     <LineChart data={trends}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                       <XAxis dataKey="month" tickFormatter={(m) => MONTHS[m - 1]} fontSize={11} />
-                      <YAxis fontSize={11} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v) => `₹${v?.toLocaleString("en-IN")}`} />
+                      <YAxis fontSize={11} tickFormatter={(v) => compact(v)} />
+                      <Tooltip formatter={(v) => fmt(v)} />
                       <Legend />
                       <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} dot={false} name="Income" />
                       <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} dot={false} name="Expense" />
@@ -196,7 +199,7 @@ export default function ReportsPage() {
                           <div className="flex-1 bg-gray-100 rounded-full h-2">
                             <div className="h-2 rounded-full" style={{ width: `${pct}%`, background: COLORS[i % COLORS.length] }} />
                           </div>
-                          <span className="text-sm font-medium text-gray-800 w-24 text-right">₹{cat.total?.toLocaleString("en-IN")}</span>
+                          <span className="text-sm font-medium text-gray-800 w-24 text-right">{fmt(cat.total)}</span>
                           <span className="text-xs text-gray-400 w-10 text-right">{pct}%</span>
                         </div>
                       );

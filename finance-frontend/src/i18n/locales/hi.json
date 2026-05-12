@@ -35,7 +35,12 @@
     "expense": "व्यय",
     "delete": "हटाएं",
     "edit": "संपादित करें",
-    "no_transactions": "कोई लेनदेन नहीं मिला"
+    "no_transactions": "कोई लेनदेन नहीं मिला",
+    "deleted": "लेनदेन हटाया गया",
+    "all_types": "सभी प्रकार",
+    "all_categories": "सभी श्रेणियां",
+    "search_placeholder": "विवरण या श्रेणी से खोजें...",
+    "add_to_manage": "अपने लेनदेन जोड़ें, फ़िल्टर करें और प्रबंधित करें"
   },
   "budgets": {
     "title": "बजट",
@@ -47,7 +52,13 @@
     "within_budget": "बजट में",
     "warning": "चेतावनी",
     "alert_threshold": "चेतावनी पर",
-    "no_budgets": "इस महीने के लिए कोई बजट नहीं"
+    "no_budgets": "इस महीने के लिए कोई बजट नहीं",
+    "edit": "बजट संपादित करें",
+    "new": "नया बजट",
+    "track_limits": "श्रेणी के अनुसार खर्च सीमा ट्रैक करें",
+    "create_first": "अपना पहला बजट बनाएं",
+    "save": "बजट सहेजें",
+    "delete_confirm": "इस बजट को हटाएं?"
   },
   "goals": {
     "title": "बचत लक्ष्य",
@@ -57,7 +68,42 @@
     "deadline": "अंतिम तिथि",
     "contribute": "बचत जोड़ें",
     "completed": "पूर्ण",
-    "no_goals": "अभी तक कोई बचत लक्ष्य नहीं"
+    "no_goals": "अभी तक कोई बचत लक्ष्य नहीं",
+    "edit": "लक्ष्य संपादित करें",
+    "new": "नया बचत लक्ष्य",
+    "goal_name": "लक्ष्य का नाम",
+    "target_amount": "लक्ष्य राशि",
+    "deadline_optional": "अंतिम तिथि (वैकल्पिक)",
+    "days_left": "दिन बाकी",
+    "overdue": "समय सीमा पार",
+    "achieved": "लक्ष्य प्राप्त!",
+    "active": "सक्रिय लक्ष्य",
+    "completed_section": "पूर्ण लक्ष्य",
+    "create_first": "अपना पहला लक्ष्य बनाएं",
+    "save": "लक्ष्य सहेजें",
+    "delete_confirm": "इस लक्ष्य को हटाएं?",
+    "pct_complete": "पूर्ण",
+    "contribute_to": "जोड़ें"
+  },
+  "recurring": {
+    "title": "आवर्ती लेनदेन",
+    "add": "आवर्ती जोड़ें",
+    "edit": "आवर्ती संपादित करें",
+    "new": "नया आवर्ती लेनदेन",
+    "no_recurring": "अभी तक कोई आवर्ती लेनदेन नहीं",
+    "add_first": "अपना पहला आवर्ती लेनदेन जोड़ें",
+    "active": "सक्रिय",
+    "paused": "रुका हुआ",
+    "next_due": "अगली तिथि",
+    "amount": "राशि",
+    "frequency": "आवृत्ति",
+    "active_count": "सक्रिय आवर्ती लेनदेन"
+  },
+  "frequencies": {
+    "daily": "दैनिक",
+    "weekly": "साप्ताहिक",
+    "monthly": "मासिक",
+    "yearly": "वार्षिक"
   },
   "ai": {
     "title": "AI सहायक",
@@ -68,7 +114,17 @@
     "subscriptions": "पहचाने गए सब्सक्रिप्शन",
     "forecast": "अगले महीने का पूर्वानुमान",
     "thinking": "सोच रहा हूं...",
-    "premium_only": "AI सुविधाओं के लिए Premium चाहिए"
+    "premium_only": "AI सुविधाओं के लिए Premium चाहिए",
+    "financial_score": "वित्तीय स्वास्थ्य स्कोर",
+    "quick_actions": "त्वरित क्रियाएं",
+    "analyze_spending": "खर्च विश्लेषण",
+    "predict_next_month": "अगले महीने का अनुमान",
+    "detect_subscriptions": "सब्सक्रिप्शन पहचानें",
+    "greeting": "नमस्ते! मैं आपका AI वित्तीय सहायक हूं। अपने खर्च, बचत या व्यक्तिगत सुझावों के बारे में कुछ भी पूछें।",
+    "analysis_unavailable": "विश्लेषण अभी उपलब्ध नहीं है। बाद में पुनः प्रयास करें।",
+    "no_subscriptions": "आपके हाल के लेनदेन में कोई आवर्ती सब्सक्रिप्शन नहीं मिला।",
+    "recurring_impact": "अनुमानित मासिक प्रभाव",
+    "ask_placeholder": "अपने वित्त के बारे में पूछें…"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -99,6 +155,64 @@
     "this_month": "इस महीने",
     "last_month": "पिछले महीने",
     "this_year": "इस साल",
-    "upgrade": "Premium में अपग्रेड करें"
+    "upgrade": "Premium में अपग्रेड करें",
+    "undo": "पूर्ववत करें",
+    "clear_filters": "फ़िल्टर साफ़ करें",
+    "export_csv": "CSV निर्यात",
+    "optional_note": "वैकल्पिक टिप्पणी",
+    "saving": "सहेज रहा है...",
+    "adding": "जोड़ रहा है...",
+    "add": "जोड़ें",
+    "save_changes": "परिवर्तन सहेजें",
+    "add_transaction": "लेनदेन जोड़ें",
+    "edit_transaction": "लेनदेन संपादित करें",
+    "no_data": "इस अवधि के लिए कोई डेटा नहीं",
+    "active_goals": "सक्रिय लक्ष्य"
+  },
+  "categories": {
+    "food": "खाना",
+    "transport": "परिवहन",
+    "shopping": "खरीदारी",
+    "entertainment": "मनोरंजन",
+    "utilities": "उपयोगिताएं",
+    "health": "स्वास्थ्य",
+    "education": "शिक्षा",
+    "finance": "वित्त",
+    "telecom": "दूरसंचार",
+    "travel": "यात्रा",
+    "salary": "वेतन",
+    "miscellaneous": "विविध",
+    "bills": "बिल",
+    "investment": "निवेश",
+    "general": "सामान्य"
+  },
+  "insights": {
+    "title": "स्मार्ट अंतर्दृष्टि",
+    "savings_rate": "बचत दर",
+    "target": "लक्ष्य: 20%+",
+    "no_income": "इस अवधि में कोई आय दर्ज नहीं।",
+    "great_savings": "शाबाश! आप बचत कर रहे हैं",
+    "low_savings": "आपकी बचत दर कम है",
+    "low_savings_target": "20%+ का लक्ष्य रखें।",
+    "top_category": "सबसे बड़ी खर्च श्रेणी:",
+    "high_spend": "आप खर्च कर रहे हैं",
+    "high_spend_tail": "अपनी आय का। बफर बनाने के लिए खर्च कम करें।",
+    "overspending": "आप कमाई से ज्यादा खर्च कर रहे हैं। अपना बजट देखें।",
+    "add_more": "व्यक्तिगत अंतर्दृष्टि के लिए और लेनदेन जोड़ें।",
+    "of_income": "अपनी आय का।"
+  },
+  "reports": {
+    "title": "रिपोर्ट",
+    "monthly_trends": "मासिक रुझान",
+    "category_breakdown": "श्रेणी विश्लेषण",
+    "no_category_data": "इस अवधि के लिए कोई श्रेणी डेटा नहीं",
+    "no_trend_data": "कोई रुझान डेटा उपलब्ध नहीं"
+  },
+  "sms": {
+    "title": "SMS आयात",
+    "detected": "पहचाना गया",
+    "amount": "राशि",
+    "type": "प्रकार",
+    "category": "श्रेणी"
   }
 }

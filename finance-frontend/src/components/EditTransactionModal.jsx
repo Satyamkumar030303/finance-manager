@@ -1,182 +1,140 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Pencil } from "lucide-react";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { useUpdateTransaction } from "../hooks/useUpdateTransaction";
+import { useCurrency } from "../context/CurrencyContext";
 
-const EditTransactionModal = ({ transaction, onClose }) => {
+const CATEGORIES = [
+  "Food", "Travel", "Shopping", "Salary", "Bills",
+  "Entertainment", "Health", "Education", "Investment", "Miscellaneous",
+];
 
-  const { mutate: updateTx } = useUpdateTransaction();
+export default function EditTransactionModal({ transaction, onClose }) {
+  const { t } = useTranslation();
+  const { symbol } = useCurrency();
+  const { mutate: updateTx, isPending } = useUpdateTransaction();
 
   const [form, setForm] = useState({
-    amount: "",
-    type: "expense",
-    category: "",
-    transactionDate: "",
-    description: ""
+    amount: "", type: "expense", category: "",
+    transactionDate: "", description: "",
   });
 
   useEffect(() => {
-
     if (transaction) {
       setForm({
-        amount: transaction.amount,
-        type: transaction.type,
-        category: transaction.category,
-        transactionDate: transaction.transactionDate?.slice(0,10),
-        description: transaction.description || ""
+        amount: transaction.amount ?? "",
+        type: transaction.type ?? "expense",
+        category: transaction.category ?? "Food",
+        transactionDate: transaction.transactionDate?.slice(0, 10) ?? "",
+        description: transaction.description ?? "",
       });
     }
-
   }, [transaction]);
 
   useEffect(() => {
-
-    const esc = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-
+    const esc = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", esc);
-
     return () => window.removeEventListener("keydown", esc);
-
   }, [onClose]);
 
-  const handleChange = (e) => {
-
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-
-  };
+  const set = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = (e) => {
-
     e.preventDefault();
+    const amount = parseFloat(form.amount);
+    if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
 
     updateTx(
-      { id: transaction._id, ...form },
-      { onSuccess: onClose }
+      { id: transaction._id, payload: { ...form, amount } },
+      {
+        onSuccess: () => { toast.success("Transaction updated"); onClose(); },
+        onError: () => toast.error("Failed to update"),
+      }
     );
-
   };
 
   if (!transaction) return null;
 
   return createPortal(
-
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[9999]"
+      className="fixed inset-0 z-[9999] flex items-center justify-center
+                 bg-black/60 backdrop-blur-sm p-4"
       onClick={onClose}
     >
-
       <div
-        className="bg-white rounded-xl p-6 w-[420px] shadow-xl animate-modal"
+        className="card-raised w-full max-w-md animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
-
-        <div className="flex justify-between items-center mb-4">
-
-          <h2 className="text-xl font-semibold">
-            Edit Transaction
-          </h2>
-
-          <button onClick={onClose}>
-            <X size={18}/>
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 rounded-lg text-blue-600 dark:text-blue-400">
+              <Pencil size={14} />
+            </div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {t("common.edit_transaction")}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
+                       hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <X size={16} />
           </button>
-
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-
-          <input
-            type="number"
-            name="amount"
-            value={form.amount}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-
-          <select
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-
-          <input
-            type="text"
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-
-          <input
-            type="date"
-            name="transactionDate"
-            value={form.transactionDate}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-
-          <input
-            type="text"
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-
-          <div className="flex justify-end gap-2 pt-2">
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Update
-            </button>
-
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">{t("transactions.amount")} ({symbol})</label>
+              <input type="number" name="amount" value={form.amount}
+                onChange={set} min="0" step="0.01" className="input" required />
+            </div>
+            <div>
+              <label className="label">{t("transactions.type")}</label>
+              <select name="type" value={form.type} onChange={set} className="input">
+                <option value="income">{t("transactions.income")}</option>
+                <option value="expense">{t("transactions.expense")}</option>
+              </select>
+            </div>
           </div>
 
+          <div>
+            <label className="label">{t("transactions.category")}</label>
+            <select name="category" value={form.category} onChange={set} className="input">
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{t(`categories.${c.toLowerCase()}`, c)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="label">{t("transactions.date")}</label>
+            <input type="date" name="transactionDate" value={form.transactionDate}
+              onChange={set} className="input" required />
+          </div>
+
+          <div>
+            <label className="label">{t("transactions.description")}</label>
+            <input type="text" name="description" value={form.description}
+              onChange={set} placeholder={t("common.optional_note")} className="input" maxLength={120} />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary">
+              {t("common.cancel")}
+            </button>
+            <button type="submit" disabled={isPending} className="btn-primary">
+              {isPending ? t("common.saving") : t("common.save_changes")}
+            </button>
+          </div>
         </form>
-
       </div>
-
-      <style>
-        {`
-          .animate-modal {
-            animation: modalEnter 0.25s ease;
-          }
-
-          @keyframes modalEnter {
-            from {
-              opacity: 0;
-              transform: translateY(-20px) scale(.95);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-        `}
-      </style>
-
     </div>,
-
     document.body
   );
-};
-
-export default EditTransactionModal;
+}

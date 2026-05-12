@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
 import { PlusCircle, Trash2, Edit2, RefreshCcw, X, ToggleLeft, ToggleRight } from "lucide-react";
 import api from "../api/axios";
+import { useCurrency } from "../context/CurrencyContext";
 
 const CATEGORIES = [
   "Food", "Transport", "Shopping", "Entertainment", "Utilities",
@@ -19,6 +20,7 @@ const FREQUENCIES = [
 ];
 
 function RecurringForm({ onClose, existing }) {
+  const { symbol } = useCurrency();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     name: existing?.name || "",
@@ -89,7 +91,7 @@ function RecurringForm({ onClose, existing }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({symbol})</label>
               <input
                 type="number"
                 min="1"
@@ -219,6 +221,7 @@ export default function RecurringPage() {
 }
 
 function RecurringCard({ item, onEdit, onDelete, onToggle }) {
+  const { fmt } = useCurrency();
   const nextRun = new Date(item.nextRunDate);
   const daysUntil = Math.ceil((nextRun - new Date()) / (1000 * 60 * 60 * 24));
   const freqColors = { daily: "bg-purple-100 text-purple-700", weekly: "bg-blue-100 text-blue-700", monthly: "bg-green-100 text-green-700", yearly: "bg-yellow-100 text-yellow-700" };
@@ -238,7 +241,7 @@ function RecurringCard({ item, onEdit, onDelete, onToggle }) {
       </div>
       <div className="text-right flex-shrink-0">
         <p className={`font-semibold ${item.type === "income" ? "text-green-600" : "text-red-600"}`}>
-          {item.type === "income" ? "+" : "-"}₹{item.amount?.toLocaleString("en-IN")}
+          {item.type === "income" ? "+" : "-"}{fmt(item.amount)}
         </p>
         <div className="flex gap-1 mt-1 justify-end">
           <button onClick={() => onToggle.mutate({ id: item._id, isActive: item.isActive })} className="p-1 rounded hover:bg-gray-100">

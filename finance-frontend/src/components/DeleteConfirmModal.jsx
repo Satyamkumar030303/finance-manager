@@ -1,80 +1,53 @@
 import { createPortal } from "react-dom";
-import { Trash2, X } from "lucide-react";
+import { Trash2, X, AlertTriangle } from "lucide-react";
 
-const DeleteConfirmModal = ({ onConfirm, onCancel }) => {
-
+export default function DeleteConfirmModal({ onConfirm, onCancel }) {
   return createPortal(
-
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center
+                 bg-black/60 backdrop-blur-sm p-4"
       onClick={onCancel}
     >
-
       <div
-        className="bg-white w-[380px] rounded-xl p-6 shadow-xl animate-modal"
+        className="card-raised w-full max-w-sm animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
-
-        <div className="flex justify-between items-center mb-3">
-
-          <h2 className="text-lg font-semibold">
-            Delete Transaction
-          </h2>
-
-          <button onClick={onCancel}>
-            <X size={18}/>
-          </button>
-
-        </div>
-
-        <p className="text-gray-600 mb-5">
-          Are you sure you want to delete this transaction?
-        </p>
-
-        <div className="flex justify-end gap-2">
-
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-lg text-red-600 dark:text-red-400">
+              <AlertTriangle size={14} />
+            </div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              Delete Transaction
+            </h2>
+          </div>
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
+                       hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            Cancel
+            <X size={16} />
           </button>
-
-          <button
-            onClick={onConfirm}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-          >
-            <Trash2 size={16}/>
-            Delete
-          </button>
-
         </div>
 
+        {/* Body */}
+        <div className="p-5">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
+            Are you sure you want to delete this transaction? This action cannot be undone.
+          </p>
+
+          <div className="flex justify-end gap-2">
+            <button onClick={onCancel} className="btn-secondary">
+              Cancel
+            </button>
+            <button onClick={onConfirm} className="btn-danger">
+              <Trash2 size={14} /> Delete
+            </button>
+          </div>
+        </div>
       </div>
-
-      <style>
-        {`
-          .animate-modal {
-            animation: modalEnter 0.25s ease;
-          }
-
-          @keyframes modalEnter {
-            from {
-              opacity: 0;
-              transform: translateY(-20px) scale(.95);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-        `}
-      </style>
-
     </div>,
-
     document.body
   );
-};
-
-export default DeleteConfirmModal;
+}

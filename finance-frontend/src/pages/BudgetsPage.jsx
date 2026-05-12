@@ -4,17 +4,21 @@ import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
 import { PlusCircle, Trash2, Edit2, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { createPortal } from "react-dom";
 import api from "../api/axios";
+import { useCurrency } from "../context/CurrencyContext";
 
 const CATEGORIES = [
   "Food", "Transport", "Shopping", "Entertainment", "Utilities",
-  "Health", "Education", "Finance", "Telecom", "Travel", "Miscellaneous"
+  "Health", "Education", "Finance", "Telecom", "Travel", "Miscellaneous",
 ];
 
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
 
 function BudgetForm({ onClose, existing }) {
+  const { t } = useTranslation();
+  const { symbol } = useCurrency();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     category: existing?.category || "Food",
@@ -30,7 +34,6 @@ function BudgetForm({ onClose, existing }) {
         ? api.put(`/budgets/${existing.id}`, data)
         : api.post("/budgets", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       queryClient.invalidateQueries({ queryKey: ["budget-comparison"] });
       toast.success(existing ? "Budget updated" : "Budget created");
       onClose();
@@ -43,72 +46,58 @@ function BudgetForm({ onClose, existing }) {
     mutation.mutate({ ...form, limitAmount: parseFloat(form.limitAmount) });
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex justify-between items-center p-5 border-b">
-          <h2 className="font-semibold text-lg">{existing ? "Edit Budget" : "New Budget"}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="card-raised w-full max-w-md animate-scaleIn" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-800">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {existing ? t("budgets.edit") : t("budgets.new")}
+          </h2>
+          <button onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <X size={16} />
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            <label className="label">{t("transactions.category")}</label>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="input">
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{t(`categories.${c.toLowerCase()}`, c)}</option>
+              ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Limit Amount (₹)</label>
-            <input
-              type="number"
-              min="1"
-              value={form.limitAmount}
+            <label className="label">{t("budgets.limit")} ({symbol})</label>
+            <input type="number" min="1" value={form.limitAmount}
               onChange={(e) => setForm({ ...form, limitAmount: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              required
-            />
+              className="input" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Alert Threshold ({form.alertThreshold}%)
-            </label>
-            <input
-              type="range"
-              min="10"
-              max="100"
-              value={form.alertThreshold}
+            <label className="label">{t("budgets.alert_threshold")} {form.alertThreshold}%</label>
+            <input type="range" min="10" max="100" value={form.alertThreshold}
               onChange={(e) => setForm({ ...form, alertThreshold: parseInt(e.target.value) })}
-              className="w-full accent-blue-600"
-            />
+              className="w-full accent-blue-600" />
+            <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <span>10%</span><span>100%</span>
+            </div>
           </div>
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
-            >
-              {mutation.isPending ? "Saving..." : "Save Budget"}
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">{t("common.cancel")}</button>
+            <button type="submit" disabled={mutation.isPending} className="btn-primary flex-1">
+              {mutation.isPending ? t("common.saving") : t("budgets.save")}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
 export default function BudgetsPage() {
   const { t } = useTranslation();
+  const { fmt } = useCurrency();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editBudget, setEditBudget] = useState(null);
@@ -130,10 +119,22 @@ export default function BudgetsPage() {
     },
   });
 
-  const statusColor = (status, pct) => {
+  const barColor = (status, pct) => {
     if (status === "Exceeded") return "bg-red-500";
-    if (pct >= 80) return "bg-yellow-500";
-    return "bg-green-500";
+    if (pct >= 80) return "bg-amber-500";
+    return "bg-emerald-500";
+  };
+
+  const statusBadge = (b) => {
+    if (b.status === "Exceeded") return (
+      <span className="badge-red"><AlertTriangle size={9} /> {t("budgets.exceeded")}</span>
+    );
+    if (b.status === "Warning") return (
+      <span className="badge-yellow"><AlertTriangle size={9} /> {b.percentage}%</span>
+    );
+    return (
+      <span className="badge-green"><CheckCircle size={9} /> {b.percentage}%</span>
+    );
   };
 
   return (
@@ -143,18 +144,18 @@ export default function BudgetsPage() {
         <meta name="robots" content="noindex" />
       </Helmet>
 
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{t("budgets.title")}</h1>
-            <p className="text-sm text-gray-500">Track your spending limits by category</p>
+            <h1 className="page-title">{t("budgets.title")}</h1>
+            <p className="page-subtitle">{t("budgets.track_limits")}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <select
               value={month}
               onChange={(e) => setMonth(parseInt(e.target.value))}
-              className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="input w-auto text-sm"
             >
               {Array.from({ length: 12 }, (_, i) => (
                 <option key={i + 1} value={i + 1}>
@@ -163,94 +164,84 @@ export default function BudgetsPage() {
               ))}
             </select>
             <input
-              type="number"
-              value={year}
+              type="number" value={year}
               onChange={(e) => setYear(parseInt(e.target.value))}
-              className="border rounded-lg px-3 py-2 w-24 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="input w-24 text-sm"
             />
             <button
               onClick={() => { setEditBudget(null); setShowForm(true); }}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
+              className="btn-primary btn-sm"
             >
-              <PlusCircle size={16} /> {t("budgets.add")}
+              <PlusCircle size={15} /> {t("budgets.add")}
             </button>
           </div>
         </div>
 
         {/* Budget cards */}
         {isLoading ? (
-          <div className="text-center py-12 text-gray-400">Loading budgets...</div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1,2,3,4].map(i => <div key={i} className="skeleton h-36 rounded-2xl" />)}
+          </div>
         ) : !comparison?.length ? (
-          <div className="text-center py-12">
-            <PlusCircle className="mx-auto text-gray-300 mb-3" size={48} />
-            <p className="text-gray-500">{t("budgets.no_budgets")}</p>
+          <div className="card py-16 text-center">
+            <PlusCircle className="mx-auto text-gray-300 dark:text-gray-700 mb-3" size={40} />
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t("budgets.no_budgets")}</p>
+            <button onClick={() => setShowForm(true)} className="btn-primary btn-sm mt-3">
+              {t("budgets.create_first")}
+            </button>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {comparison.map((b) => (
               <div
                 key={b.category}
-                className={`bg-white rounded-xl shadow-sm border-l-4 p-5 space-y-3 ${
+                className={`card p-5 space-y-3 border-l-4 ${
                   b.status === "Exceeded"
-                    ? "border-red-500"
+                    ? "border-l-red-500"
                     : b.percentage >= b.alertThreshold
-                    ? "border-yellow-500"
-                    : "border-green-500"
+                    ? "border-l-amber-500"
+                    : "border-l-emerald-500"
                 }`}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-gray-800">{b.category}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      ₹{b.actual?.toFixed(0)} / ₹{b.budget?.toFixed(0)}
+                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-100">
+                      {t(`categories.${b.category?.toLowerCase()}`, b.category)}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {fmt(b.actual)} of {fmt(b.budget)} {t("budgets.spent").toLowerCase()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        b.status === "Exceeded"
-                          ? "bg-red-100 text-red-700"
-                          : b.status === "Warning"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {b.status === "Exceeded" ? (
-                        <span className="flex items-center gap-1"><AlertTriangle size={10} /> Exceeded</span>
-                      ) : b.status === "Warning" ? (
-                        <span className="flex items-center gap-1"><AlertTriangle size={10} /> {b.percentage}%</span>
-                      ) : (
-                        <span className="flex items-center gap-1"><CheckCircle size={10} /> {b.percentage}%</span>
-                      )}
-                    </span>
+                  <div className="flex items-center gap-1.5">
+                    {statusBadge(b)}
                     <button
                       onClick={() => { setEditBudget({ ...b, id: b._id }); setShowForm(true); }}
-                      className="text-gray-400 hover:text-blue-600 transition"
+                      className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                     >
-                      <Edit2 size={15} />
+                      <Edit2 size={13} />
                     </button>
                     <button
                       onClick={() => {
-                        if (confirm("Delete this budget?")) deleteMutation.mutate(b._id);
+                        if (window.confirm(t("budgets.delete_confirm"))) deleteMutation.mutate(b._id);
                       }}
-                      className="text-gray-400 hover:text-red-600 transition"
+                      className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-gray-100 rounded-full h-2.5">
+                <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                   <div
-                    className={`h-2.5 rounded-full transition-all ${statusColor(b.status, b.percentage)}`}
+                    className={`h-2 rounded-full transition-all duration-500 ${barColor(b.status, b.percentage)}`}
                     style={{ width: `${Math.min(b.percentage, 100)}%` }}
                   />
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{t("budgets.remaining")}: ₹{Math.max(0, b.budget - b.actual).toFixed(0)}</span>
-                  <span>Alert at {b.alertThreshold}%</span>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <span>{t("budgets.remaining")}: {fmt(Math.max(0, b.budget - b.actual))}</span>
+                  <span>{t("budgets.alert_threshold")} {b.alertThreshold}%</span>
                 </div>
               </div>
             ))}

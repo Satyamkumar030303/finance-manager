@@ -9,7 +9,7 @@ import TransactionFilters from "../components/TransactionFilters";
 import EditTransactionModal from "../components/EditTransactionModal";
 import api from "../api/axios";
 
-const TransactionsPage = () => {
+export default function TransactionsPage() {
   const { t } = useTranslation();
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState("");
@@ -47,38 +47,51 @@ const TransactionsPage = () => {
 
   return (
     <>
-      <Helmet><title>Transactions — Finance Manager</title><meta name="robots" content="noindex" /></Helmet>
+      <Helmet>
+        <title>Transactions — Finance Manager</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
+        {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl font-bold text-gray-800">{t("nav.transactions")}</h1>
+          <div>
+            <h1 className="page-title">{t("nav.transactions")}</h1>
+            <p className="page-subtitle">Add, filter, and manage your transactions</p>
+          </div>
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-2 border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm disabled:opacity-60"
+            className="btn-secondary btn-sm"
           >
-            <Download size={15} />
+            <Download size={14} />
             {exporting ? "Exporting..." : "Export CSV"}
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">Add Transaction</h2>
-          <TransactionForm />
+        {/* Add form */}
+        <div className="card p-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            Add Transaction
+          </h2>
+          <TransactionForm editing={null} setEditing={() => {}} />
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
-          {/* Search bar */}
+        {/* Search + Filters */}
+        <div className="card p-4 space-y-3">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search transactions..."
-              className="w-full border rounded-lg pl-9 pr-9 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Search by description or category..."
+              className="input pl-10 pr-10"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
                 <X size={15} />
               </button>
             )}
@@ -86,15 +99,18 @@ const TransactionsPage = () => {
           <TransactionFilters filters={filters} setFilters={setFilters} />
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">Transactions</h2>
+        {/* List */}
+        <div className="card p-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            All Transactions
+          </h2>
           <TransactionList filters={activeFilters} setEditing={setEditing} />
         </div>
 
-        {editing && <EditTransactionModal transaction={editing} onClose={() => setEditing(null)} />}
+        {editing && (
+          <EditTransactionModal transaction={editing} onClose={() => setEditing(null)} />
+        )}
       </div>
     </>
   );
-};
-
-export default TransactionsPage;
+}

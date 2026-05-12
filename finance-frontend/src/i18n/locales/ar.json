@@ -99,6 +99,31 @@
     "this_month": "هذا الشهر",
     "last_month": "الشهر الماضي",
     "this_year": "هذه السنة",
-    "upgrade": "الترقية إلى Premium"
+    "upgrade": "الترقية إلى Premium",
+    "undo": "تراجع",
+    "clear_filters": "مسح الفلاتر"
+  },
+  "categories": {
+    "food": "طعام",
+    "transport": "مواصلات",
+    "shopping": "تسوق",
+    "entertainment": "ترفيه",
+    "utilities": "خدمات",
+    "health": "صحة",
+    "education": "تعليم",
+    "finance": "مالية",
+    "telecom": "اتصالات",
+    "travel": "سفر",
+    "salary": "راتب",
+    "miscellaneous": "متنوع",
+    "bills": "فواتير",
+    "investment": "استثمار",
+    "general": "عام"
+  },
+  "frequencies": {
+    "daily": "يومي",
+    "weekly": "أسبوعي",
+    "monthly": "شهري",
+    "yearly": "سنوي"
   }
 }

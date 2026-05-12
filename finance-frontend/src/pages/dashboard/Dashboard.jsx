@@ -2,37 +2,91 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import {
+  TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight,
+  Sparkles, ChevronRight,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
+import { useCurrency } from "../../context/CurrencyContext";
 
 import ExpensePieChart from "../../components/charts/ExpensePieChart";
 import MonthlyTrendChart from "../../components/charts/MonthlyTrendChart";
 import IncomeExpenseChart from "../../components/charts/IncomeExpenseChart";
 import SmartInsights from "../../components/SmartInsights";
 
-function SummaryCard({ label, value, icon: Icon, colorClass, borderClass }) {
+const PERIOD_LABELS = {
+  month: "This Month",
+  lastMonth: "Last Month",
+  year: "This Year",
+  decade: "Last Decade",
+  all: "All Time",
+};
+
+function KPICard({ label, value, icon: Icon, gradient, trend, trendLabel, loading }) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm border-l-4 ${borderClass} p-5`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <h2 className={`text-2xl font-bold mt-1 ${colorClass}`}>
-            ₹{value?.toLocaleString("en-IN") || 0}
-          </h2>
-        </div>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClass.replace("text-", "bg-").replace("600", "100")}`}>
-          <Icon size={20} className={colorClass} />
-        </div>
+    <div className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-lg ${gradient}`}>
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white" />
+        <div className="absolute -bottom-8 -left-4 w-32 h-32 rounded-full bg-white" />
       </div>
+
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <p className="text-sm font-medium text-white/80">{label}</p>
+          <div className="p-2 bg-white/20 rounded-xl">
+            <Icon size={16} />
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="h-8 w-28 bg-white/20 rounded-lg animate-pulse mb-2" />
+        ) : (
+          <p className="text-2xl font-bold tracking-tight mb-1">{value}</p>
+        )}
+
+        {trend !== undefined && !loading && (
+          <div className="flex items-center gap-1 text-xs text-white/80">
+            {trend >= 0
+              ? <ArrowUpRight size={12} />
+              : <ArrowDownRight size={12} />
+            }
+            <span>{Math.abs(trend)}% {trendLabel}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SectionCard({ title, children, action }) {
+  return (
+    <div className="card p-6">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{title}</h3>
+        {action}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="card p-5 space-y-3">
+      <div className="skeleton h-4 w-24" />
+      <div className="skeleton h-8 w-32" />
+      <div className="skeleton h-3 w-20" />
     </div>
   );
 }
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const { format } = useCurrency();
   const [period, setPeriod] = useState("month");
 
-  // Single consolidated API call — replaces 3 separate useEffect calls
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", period],
     queryFn: () =>
@@ -48,116 +102,161 @@ const Dashboard = () => {
   const trendData = data?.trends || [];
   const recentTransactions = data?.recentTransactions || [];
 
+  const savingsRate = income > 0 ? ((savings / income) * 100).toFixed(1) : 0;
+
   return (
     <>
-      <Helmet><title>Dashboard — Finance Manager</title><meta name="robots" content="noindex" /></Helmet>
+      <Helmet>
+        <title>Dashboard — Finance Manager</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
 
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center flex-wrap gap-3">
+      <div className="space-y-6 animate-fadeIn">
+        {/* Page header */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{t("dashboard.title")}</h1>
-            <p className="text-sm text-gray-500">Your financial overview</p>
+            <h1 className="page-title">{t("dashboard.title")}</h1>
+            <p className="page-subtitle">{PERIOD_LABELS[period]} overview</p>
           </div>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="input w-auto text-sm"
           >
-            <option value="month">{t("common.this_month")}</option>
-            <option value="lastMonth">{t("common.last_month")}</option>
-            <option value="year">{t("common.this_year")}</option>
-            <option value="decade">Last Decade</option>
-            <option value="all">{t("common.all_time")}</option>
+            {Object.entries(PERIOD_LABELS).map(([val, lbl]) => (
+              <option key={val} value={val}>{lbl}</option>
+            ))}
           </select>
         </div>
 
+        {/* KPI Cards */}
         {isLoading ? (
-          <div className="text-center py-16 text-gray-400">Loading dashboard...</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <SkeletonCard /><SkeletonCard /><SkeletonCard />
+          </div>
         ) : (
-          <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <SummaryCard
-                label={t("dashboard.total_income")}
-                value={income}
-                icon={TrendingUp}
-                colorClass="text-green-600"
-                borderClass="border-green-500"
-              />
-              <SummaryCard
-                label={t("dashboard.total_expense")}
-                value={expense}
-                icon={TrendingDown}
-                colorClass="text-red-600"
-                borderClass="border-red-500"
-              />
-              <SummaryCard
-                label={t("dashboard.net_savings")}
-                value={Math.abs(savings)}
-                icon={PiggyBank}
-                colorClass={savings >= 0 ? "text-blue-600" : "text-orange-600"}
-                borderClass={savings >= 0 ? "border-blue-500" : "border-orange-500"}
-              />
-            </div>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
-                <h3 className="text-base font-semibold text-gray-700 mb-4">{t("dashboard.expense_by_category")}</h3>
-                <ExpensePieChart data={categoryData} />
-              </div>
-              <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
-                <h3 className="text-base font-semibold text-gray-700 mb-4">{t("dashboard.spending_trend")}</h3>
-                <MonthlyTrendChart data={trendData} period={period} />
-              </div>
-            </div>
-
-            {/* Income vs Expense */}
-            <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
-              <h3 className="text-base font-semibold text-gray-700 mb-4">{t("dashboard.income_vs_expense")}</h3>
-              <IncomeExpenseChart income={income} expense={expense} savings={savings} />
-            </div>
-
-            {/* Smart Insights */}
-            <SmartInsights income={income} expense={expense} savings={savings} categories={categoryData} />
-
-            {/* Recent Transactions */}
-            <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
-              <h2 className="text-base font-semibold text-gray-700 mb-4">{t("dashboard.recent_transactions")}</h2>
-              {recentTransactions.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-4">No transactions yet</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead>
-                      <tr className="border-b text-gray-500 text-xs uppercase tracking-wide">
-                        <th className="pb-2">Category</th>
-                        <th className="pb-2">Amount</th>
-                        <th className="pb-2">Type</th>
-                        <th className="pb-2">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentTransactions.map((tx) => (
-                        <tr key={tx._id} className="border-b last:border-0 hover:bg-gray-50">
-                          <td className="py-2.5">{tx.category}</td>
-                          <td className="py-2.5 font-medium">₹{tx.amount?.toLocaleString("en-IN")}</td>
-                          <td className={`py-2.5 font-medium ${tx.type === "income" ? "text-green-600" : "text-red-600"}`}>
-                            {tx.type}
-                          </td>
-                          <td className="py-2.5 text-gray-500">
-                            {new Date(tx.transactionDate || tx.createdAt).toLocaleDateString("en-IN")}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <KPICard
+              label={t("dashboard.total_income")}
+              value={format(income)}
+              icon={TrendingUp}
+              gradient="gradient-emerald"
+            />
+            <KPICard
+              label={t("dashboard.total_expense")}
+              value={format(expense)}
+              icon={TrendingDown}
+              gradient="gradient-rose"
+            />
+            <KPICard
+              label={t("dashboard.net_savings")}
+              value={format(Math.abs(savings))}
+              icon={Wallet}
+              gradient={savings >= 0 ? "gradient-blue" : "gradient-amber"}
+              trendLabel="savings rate"
+              trend={parseFloat(savingsRate)}
+            />
+          </div>
         )}
+
+        {/* Charts row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <SectionCard title={t("dashboard.expense_by_category")}>
+            {isLoading
+              ? <div className="skeleton h-52 w-full" />
+              : <ExpensePieChart data={categoryData} />
+            }
+          </SectionCard>
+
+          <SectionCard title={t("dashboard.spending_trend")}>
+            {isLoading
+              ? <div className="skeleton h-52 w-full" />
+              : <MonthlyTrendChart data={trendData} period={period} />
+            }
+          </SectionCard>
+        </div>
+
+        {/* Income vs Expense */}
+        <SectionCard title={t("dashboard.income_vs_expense")}>
+          {isLoading
+            ? <div className="skeleton h-40 w-full" />
+            : <IncomeExpenseChart income={income} expense={expense} savings={savings} />
+          }
+        </SectionCard>
+
+        {/* Smart Insights */}
+        {!isLoading && (
+          <SmartInsights
+            income={income}
+            expense={expense}
+            savings={savings}
+            categories={categoryData}
+          />
+        )}
+
+        {/* Recent Transactions */}
+        <SectionCard
+          title={t("dashboard.recent_transactions")}
+          action={
+            <Link
+              to="/transactions"
+              className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400
+                         hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
+            >
+              View all <ChevronRight size={13} />
+            </Link>
+          }
+        >
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1,2,3,4].map(i => <div key={i} className="skeleton h-10 w-full" />)}
+            </div>
+          ) : recentTransactions.length === 0 ? (
+            <div className="py-8 text-center">
+              <Sparkles size={32} className="mx-auto mb-3 text-gray-300 dark:text-gray-700" />
+              <p className="text-sm text-gray-400 dark:text-gray-500">No transactions yet.</p>
+              <Link to="/transactions" className="btn-primary btn-sm mt-3 inline-flex">
+                Add your first transaction
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto -mx-1">
+              <table className="table-base">
+                <thead>
+                  <tr>
+                    <th className="table-th">Description</th>
+                    <th className="table-th">Category</th>
+                    <th className="table-th">Amount</th>
+                    <th className="table-th hidden sm:table-cell">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTransactions.map((tx) => (
+                    <tr key={tx._id} className="table-row">
+                      <td className="table-td font-medium text-gray-900 dark:text-gray-100 max-w-[140px] truncate">
+                        {tx.description || tx.category}
+                      </td>
+                      <td className="table-td">
+                        <span className="badge-gray">{tx.category}</span>
+                      </td>
+                      <td className="table-td">
+                        <span className={`font-semibold ${tx.type === "income"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-red-500 dark:text-red-400"}`}
+                        >
+                          {tx.type === "income" ? "+" : "−"}{format(tx.amount)}
+                        </span>
+                      </td>
+                      <td className="table-td hidden sm:table-cell text-gray-500 dark:text-gray-400 text-xs">
+                        {new Date(tx.transactionDate || tx.createdAt).toLocaleDateString("en-IN")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
       </div>
     </>
   );

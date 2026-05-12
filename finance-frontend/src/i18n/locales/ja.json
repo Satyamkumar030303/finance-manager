@@ -6,5 +6,7 @@
   "goals": { "title": "貯蓄目標", "add": "新しい目標", "target": "目標", "saved": "貯蓄済み", "deadline": "締切", "contribute": "貯蓄を追加", "completed": "完了", "no_goals": "貯蓄目標なし" },
   "ai": { "title": "AIアシスタント", "placeholder": "財務について質問してください...", "send": "送信", "score": "財務スコア", "recommendations": "推奨事項", "subscriptions": "検出されたサブスクリプション", "forecast": "来月の予測", "thinking": "考え中...", "premium_only": "AI機能にはPremiumが必要" },
   "settings": { "title": "設定", "profile": "プロフィール", "name": "フルネーム", "email": "メール", "monthly_income": "月収", "currency": "優先通貨", "language": "言語", "change_password": "パスワード変更", "current_password": "現在のパスワード", "new_password": "新しいパスワード", "save": "変更を保存", "saved": "変更が保存されました！" },
-  "common": { "loading": "読み込み中...", "error": "エラーが発生しました", "save": "保存", "cancel": "キャンセル", "delete": "削除", "edit": "編集", "confirm": "確認", "close": "閉じる", "month": "月", "year": "年", "all_time": "全期間", "this_month": "今月", "last_month": "先月", "this_year": "今年", "upgrade": "Premiumにアップグレード" }
+  "common": { "loading": "読み込み中...", "error": "エラーが発生しました", "save": "保存", "cancel": "キャンセル", "delete": "削除", "edit": "編集", "confirm": "確認", "close": "閉じる", "month": "月", "year": "年", "all_time": "全期間", "this_month": "今月", "last_month": "先月", "this_year": "今年", "upgrade": "Premiumにアップグレード", "undo": "元に戻す", "clear_filters": "フィルターをクリア" },
+  "categories": { "food": "食費", "transport": "交通", "shopping": "買い物", "entertainment": "娯楽", "utilities": "光熱費", "health": "健康", "education": "教育", "finance": "金融", "telecom": "通信", "travel": "旅行", "salary": "給与", "miscellaneous": "その他", "bills": "請求書", "investment": "投資", "general": "一般" },
+  "frequencies": { "daily": "毎日", "weekly": "毎週", "monthly": "毎月", "yearly": "毎年" }
 }
