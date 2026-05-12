@@ -11,7 +11,9 @@ const {
   getMonthlyTrends,
   deleteTransaction,
   updateTransaction,
-  getRecentTransactions
+  getRecentTransactions,
+  exportTransactions,
+  getDashboard,
 } = require("../controllers/transaction.controller");
 
 const authMiddleware = require("../middlewares/auth.middleware");
@@ -41,6 +43,18 @@ router.get(
     "/recent",
     authMiddleware,
     getRecentTransactions
+);
+
+router.get(
+    "/export",
+    authMiddleware,
+    exportTransactions
+);
+
+router.get(
+    "/dashboard",
+    authMiddleware,
+    getDashboard
 );
 
 router.post(

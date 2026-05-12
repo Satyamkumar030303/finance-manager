@@ -31,6 +31,37 @@ const transactionSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    source: {
+      type: String,
+      enum: ["manual", "sms", "recurring"],
+      default: "manual",
+    },
+    merchant: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    recurringId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RecurringTransaction",
+      default: null,
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    currency: {
+      type: String,
+      default: "INR",
+    },
+    originalAmount: {
+      type: Number,
+      default: null,
+    },
+    originalCurrency: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -40,5 +71,7 @@ const transactionSchema = new mongoose.Schema(
 transactionSchema.index({ user: 1, transactionDate: -1 });
 transactionSchema.index({ user: 1, category: 1 });
 transactionSchema.index({ user: 1, type: 1 });
+transactionSchema.index({ user: 1, source: 1 });
+transactionSchema.index({ description: "text", category: "text" });
 
 module.exports = mongoose.model("Transaction", transactionSchema);

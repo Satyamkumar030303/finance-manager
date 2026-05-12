@@ -33,17 +33,24 @@ exports.getBudgetComparison = async (userId, month, year) => {
 
         const expencesMap = {};
         expances.forEach(e => {
-            expencesMap[e._id] = e.totalSpent;
+            // Normalize to PascalCase for consistent lookup
+            const key = e._id
+                ? e._id.trim().charAt(0).toUpperCase() + e._id.trim().slice(1).toLowerCase()
+                : "Miscellaneous";
+            expencesMap[key] = e.totalSpent;
         });
 
-        const result = budgets.map(budget =>{
+        const result = budgets.map(budget => {
             const spent = expencesMap[budget.category] || 0;
+            const percentage = budget.limitAmount > 0 ? Math.round((spent / budget.limitAmount) * 100) : 0;
 
             return {
                 category: budget.category,
                 budget: budget.limitAmount,
                 actual: spent,
-                status: spent > budget.limitAmount ? "Exceeded" : "Within Budget"
+                percentage,
+                alertThreshold: budget.alertThreshold || 80,
+                status: spent > budget.limitAmount ? "Exceeded" : percentage >= (budget.alertThreshold || 80) ? "Warning" : "Within Budget",
             };
         });
         return result;

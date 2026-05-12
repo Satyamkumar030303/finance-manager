@@ -27,9 +27,14 @@ const budgetSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-  
+    alertThreshold: {
+        type: Number,
+        default: 80,
+        min: 1,
+        max: 100,
+    },
 },
-    {timestamps: true}
+    { timestamps: true }
 );
 
 budgetSchema.index({ user: 1, month: 1, year: 1 });

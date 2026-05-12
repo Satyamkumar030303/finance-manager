@@ -16,54 +16,55 @@ exports.createTransaction = async (userId, data) => {
     return transaction;
 };
 
-exports.getUserTransactions = async (userId, queryParams = {} ) => {
-    const{
-        page = 1,
-        limit = 10,
-        type,
-        category,
-        startDate,
-        endDate
-    } = queryParams;
+exports.getUserTransactions = async (userId, queryParams = {}) => {
+    const { page = 1, limit = 20, type, category, startDate, endDate, search } = queryParams;
 
     const pageNumber = parseInt(page);
-    const pageSize = parseInt(limit);
+    const pageSize = Math.min(parseInt(limit), 100); // cap at 100
     const skip = (pageNumber - 1) * pageSize;
 
-    const filters = {
-        user: userId
-    };
+    const filters = { user: userId };
 
     if (type) filters.type = type;
 
-    if (category) filters.category = category.toLowerCase();
+    if (category) {
+        // Match PascalCase-normalized category
+        const normalized = category.trim().charAt(0).toUpperCase() + category.trim().slice(1).toLowerCase();
+        filters.category = normalized;
+    }
 
-    if (startDate || endDate) filters.transactionDate ={}; 
-        if (startDate) {
-            filters.transactionDate.$gte = new Date(startDate);
-        }
+    if (startDate || endDate) {
+        filters.transactionDate = {};
+        if (startDate) filters.transactionDate.$gte = new Date(startDate);
+        if (endDate) filters.transactionDate.$lte = new Date(endDate);
+    }
 
-        if (endDate) {
-            filters.transactionDate.$lt = new Date(endDate);
-        }  
+    if (search) {
+        filters.$or = [
+            { description: { $regex: search, $options: "i" } },
+            { category: { $regex: search, $options: "i" } },
+            { merchant: { $regex: search, $options: "i" } },
+        ];
+    }
 
-        const totalRecords = await Transaction.countDocuments(filters);
-
-        const transactions = await Transaction.find(filters)
+    const [totalRecords, transactions] = await Promise.all([
+        Transaction.countDocuments(filters),
+        Transaction.find(filters)
             .sort({ transactionDate: -1 })
             .skip(skip)
-            .limit(pageSize);
+            .limit(pageSize),
+    ]);
 
-        return {
-            transactions,
-            pagination: {
-                totalRecords,
-                currentPage: pageNumber,
-                totalPages: Math.ceil(totalRecords / pageSize),
-                pageSize: pageSize
-            }
-        };
+    return {
+        transactions,
+        pagination: {
+            totalRecords,
+            currentPage: pageNumber,
+            totalPages: Math.ceil(totalRecords / pageSize),
+            pageSize,
+        },
     };
+};
 
 exports.getMonthlySummary = async (userId, month, year) => {
     const startDate = new Date(year, month - 1, 1);

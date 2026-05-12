@@ -1,15 +1,13 @@
-console.log("AUTH ROUTES STEP 1");
-
 const express = require("express");
-console.log("AUTH ROUTES STEP 2");
-
 const router = express.Router();
+
 const authController = require("../controllers/auth.controller");
+const validate = require("../middlewares/validate.middleware");
+const { registerSchema, loginSchema } = require("../validations/auth.validator");
 
-router.post("/register", authController.register);
-console.log("AUTH ROUTES STEP 3");
-
-router.post("/login", authController.login);
-console.log("AUTH ROUTES STEP 4");
+router.post("/register", validate(registerSchema), authController.register);
+router.post("/login", validate(loginSchema), authController.login);
+router.post("/refresh", authController.refresh);
+router.post("/logout", authController.logout);
 
 module.exports = router;

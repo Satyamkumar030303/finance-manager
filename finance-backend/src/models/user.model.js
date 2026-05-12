@@ -22,8 +22,29 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-}, 
-    {timestamps:true }
+  tier: {
+    type: String,
+    enum: ["free", "premium"],
+    default: "free",
+  },
+  preferredCurrency: {
+    type: String,
+    default: "INR",
+  },
+  preferredLanguage: {
+    type: String,
+    default: "en",
+  },
+  avatarUrl: {
+    type: String,
+    default: null,
+  },
+  lastLogin: {
+    type: Date,
+    default: null,
+  },
+},
+    { timestamps: true }
 );
 
 module.exports = mongoose.model("User", userSchema);

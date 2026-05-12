@@ -1,17 +1,15 @@
 const transactionService = require("../services/transaction.service");
 const Transaction = require("../models/transaction.model");
+const Budget = require("../models/budget.model");
 const mongoose = require("mongoose");
 
 // CREATE TRANSACTION
 exports.createTransaction = async (req, res) => {
   try {
+    const { amount, type, category, transactionDate, description, source, merchant, tags, currency } = req.body;
 
-    const { amount, type, category, transactionDate, description } = req.body;
-
-    // Normalize category
     const formattedCategory =
-      category.charAt(0).toUpperCase() +
-      category.slice(1).toLowerCase();
+      category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
 
     const transaction = new Transaction({
       user: req.user.id,
@@ -19,26 +17,69 @@ exports.createTransaction = async (req, res) => {
       type,
       category: formattedCategory,
       transactionDate,
-      description
+      description,
+      source: source || "manual",
+      merchant: merchant || null,
+      tags: tags || [],
+      currency: currency || "INR",
     });
 
     await transaction.save();
 
-    res.status(201).json(transaction);
+    // Check budget alerts for expenses
+    let budgetWarnings = [];
+    if (type === "expense") {
+      const now = new Date(transactionDate || Date.now());
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      const budget = await Budget.findOne({ user: req.user.id, category: formattedCategory, month, year });
+
+      if (budget) {
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = new Date(year, month, 1);
+        const [agg] = await Transaction.aggregate([
+          {
+            $match: {
+              user: new mongoose.Types.ObjectId(req.user.id),
+              type: "expense",
+              category: formattedCategory,
+              transactionDate: { $gte: monthStart, $lt: monthEnd },
+            },
+          },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]);
+        const totalSpent = agg ? agg.total : 0;
+        const pct = Math.round((totalSpent / budget.limitAmount) * 100);
+
+        if (totalSpent > budget.limitAmount) {
+          budgetWarnings.push({
+            category: formattedCategory,
+            message: `Budget exceeded! Spent ₹${totalSpent.toFixed(0)} of ₹${budget.limitAmount} limit`,
+            percentage: pct,
+            severity: "danger",
+          });
+        } else if (pct >= (budget.alertThreshold || 80)) {
+          budgetWarnings.push({
+            category: formattedCategory,
+            message: `${pct}% of your ${formattedCategory} budget used`,
+            percentage: pct,
+            severity: "warning",
+          });
+        }
+      }
+    }
+
+    res.status(201).json({ success: true, data: transaction, budgetWarnings });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// GET USER TRANSACTIONS
+// GET USER TRANSACTIONS (with search)
 exports.getUserTransactions = async (req, res, next) => {
   try {
-    const data = await transactionService.getUserTransactions(
-      req.user.id,
-      req.query
-    );
-
+    const data = await transactionService.getUserTransactions(req.user.id, req.query);
     res.status(200).json({
       success: true,
       message: "Transactions fetched successfully",
@@ -319,10 +360,133 @@ exports.getRecentTransactions = async (req, res) => {
   try {
     const transactions = await Transaction
       .find({ user: req.user.id })
-      .sort({ createdAt: -1 })
-      .limit(5);
+      .sort({ transactionDate: -1, createdAt: -1 })
+      .limit(10);
+    res.json({ success: true, data: transactions });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-    res.json(transactions);
+// EXPORT TRANSACTIONS AS CSV
+exports.exportTransactions = async (req, res) => {
+  try {
+    const { type, category, startDate, endDate } = req.query;
+    const filters = { user: req.user.id };
+    if (type) filters.type = type;
+    if (category) filters.category = new RegExp(`^${category}$`, "i");
+    if (startDate || endDate) {
+      filters.transactionDate = {};
+      if (startDate) filters.transactionDate.$gte = new Date(startDate);
+      if (endDate) filters.transactionDate.$lte = new Date(endDate);
+    }
+
+    const transactions = await Transaction.find(filters).sort({ transactionDate: -1 }).limit(5000);
+
+    const header = "Date,Type,Category,Amount,Description\n";
+    const rows = transactions.map((t) => {
+      const date = new Date(t.transactionDate).toLocaleDateString("en-IN");
+      const desc = (t.description || "").replace(/,/g, " ");
+      return `${date},${t.type},${t.category},${t.amount},${desc}`;
+    });
+
+    const csv = header + rows.join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
+    res.status(200).send(csv);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// CONSOLIDATED DASHBOARD (single round-trip)
+exports.getDashboard = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { period = "month" } = req.query;
+    const oid = new mongoose.Types.ObjectId(userId);
+    const now = new Date();
+
+    let startDate, endDate;
+    if (period === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    } else if (period === "lastMonth") {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    } else if (period === "year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+    } else if (period === "decade") {
+      startDate = new Date(now.getFullYear() - 10, 0, 1);
+      endDate = now;
+    }
+
+    const matchStage = { user: oid };
+    if (startDate && endDate) matchStage.transactionDate = { $gte: startDate, $lte: endDate };
+
+    const [dashboardData, recent] = await Promise.all([
+      Transaction.aggregate([
+        { $match: matchStage },
+        {
+          $facet: {
+            summary: [
+              { $group: { _id: "$type", total: { $sum: "$amount" } } },
+            ],
+            categoryBreakdown: [
+              { $match: { type: "expense" } },
+              { $group: { _id: { $toLower: "$category" }, total: { $sum: "$amount" } } },
+              {
+                $project: {
+                  _id: 0,
+                  category: {
+                    $concat: [
+                      { $toUpper: { $substrCP: ["$_id", 0, 1] } },
+                      { $substrCP: ["$_id", 1, { $strLenCP: "$_id" }] },
+                    ],
+                  },
+                  amount: "$total",
+                },
+              },
+              { $sort: { amount: -1 } },
+            ],
+            trends: [
+              {
+                $group: {
+                  _id: period === "month" || period === "lastMonth"
+                    ? { $dayOfMonth: "$transactionDate" }
+                    : period === "year"
+                    ? { $month: "$transactionDate" }
+                    : { $year: "$transactionDate" },
+                  amount: { $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] } },
+                  income: { $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] } },
+                },
+              },
+              { $sort: { _id: 1 } },
+            ],
+          },
+        },
+      ]),
+      Transaction.find({ user: oid }).sort({ transactionDate: -1 }).limit(10),
+    ]);
+
+    const summary = dashboardData[0].summary;
+    let income = 0, expense = 0;
+    summary.forEach((s) => {
+      if (s._id === "income") income = s.total;
+      if (s._id === "expense") expense = s.total;
+    });
+
+    res.json({
+      success: true,
+      data: {
+        summary: { totalIncome: income, totalExpense: expense, netSavings: income - expense },
+        categoryBreakdown: dashboardData[0].categoryBreakdown,
+        trends: dashboardData[0].trends,
+        recentTransactions: recent,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

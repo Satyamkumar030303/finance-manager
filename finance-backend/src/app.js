@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const cookieParser = require("cookie-parser");
 
 const morganMiddleware = require("./middlewares/morganMiddleware");
 const errorHandler = require("./middlewares/error.middleware");
@@ -10,13 +12,19 @@ const errorHandler = require("./middlewares/error.middleware");
 const authRoutes = require("./routes/auth.routes");
 const transactionRoutes = require("./routes/transaction.routes");
 const budgetRoutes = require("./routes/budget.routes");
+const userRoutes = require("./routes/user.routes");
+const goalRoutes = require("./routes/goal.routes");
+const recurringRoutes = require("./routes/recurring.routes");
+const aiRoutes = require("./routes/ai.routes");
 
 const app = express();
 
-
-//  Security Middlewares
+// Security Middlewares
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true,
+}));
 
 
 //  Rate Limiting (before routes)
@@ -29,8 +37,11 @@ app.use(limiter);
 
 
 // Body Parser
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(cookieParser());
 
+// Sanitize MongoDB queries (NoSQL injection prevention)
+app.use(mongoSanitize());
 
 // Logging
 app.use(morganMiddleware);
@@ -45,10 +56,14 @@ app.get("/", (req, res) => {
 });
 
 
-//  Routes
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/budgets", budgetRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/goals", goalRoutes);
+app.use("/api/recurring", recurringRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 //  404 Handler (Route Not Found)
