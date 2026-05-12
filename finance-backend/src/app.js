@@ -16,6 +16,7 @@ const userRoutes = require("./routes/user.routes");
 const goalRoutes = require("./routes/goal.routes");
 const recurringRoutes = require("./routes/recurring.routes");
 const aiRoutes = require("./routes/ai.routes");
+const paymentRoutes = require("./routes/payment.routes");
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/recurring", recurringRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/payments", paymentRoutes);
 
 
 //  404 Handler (Route Not Found)
