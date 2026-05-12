@@ -48,11 +48,17 @@ app.use(morganMiddleware);
 
 
 //  Health Check
-app.get("/", (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
-    status: "success",
-    message: "Finance Manager API is running successfully",
+    status: "ok",
+    service: "finance-manager-api",
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
   });
+});
+
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "success", message: "Finance Manager API" });
 });
 
 
