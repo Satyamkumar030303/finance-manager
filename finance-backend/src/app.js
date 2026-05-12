@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
+const mongoSanitize = require("./middlewares/sanitize.middleware");
 const cookieParser = require("cookie-parser");
 
 const morganMiddleware = require("./middlewares/morganMiddleware");
