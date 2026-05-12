@@ -2,6 +2,7 @@ const transactionService = require("../services/transaction.service");
 const Transaction = require("../models/transaction.model");
 const Budget = require("../models/budget.model");
 const mongoose = require("mongoose");
+const cache = require("../utils/cache");
 
 // CREATE TRANSACTION
 exports.createTransaction = async (req, res) => {
@@ -68,6 +69,9 @@ exports.createTransaction = async (req, res) => {
         }
       }
     }
+
+    // Invalidate dashboard cache for this user
+    await cache.del(`dashboard:${req.user.id}:*`);
 
     res.status(201).json({ success: true, data: transaction, budgetWarnings });
 
@@ -316,6 +320,8 @@ exports.deleteTransaction = async (req, res) => {
       });
     }
 
+    await cache.del(`dashboard:${req.user.id}:*`);
+
     res.json({
       success: true,
       message: "Deleted successfully",
@@ -343,6 +349,8 @@ exports.updateTransaction = async (req, res) => {
       req.body,
       { new: true }
     );
+
+    await cache.del(`dashboard:${req.user.id}:*`);
 
     res.json({
       success: true,
@@ -400,12 +408,18 @@ exports.exportTransactions = async (req, res) => {
   }
 };
 
-// CONSOLIDATED DASHBOARD (single round-trip)
+// CONSOLIDATED DASHBOARD (single round-trip, Redis cached)
 exports.getDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
     const { period = "month" } = req.query;
     const oid = new mongoose.Types.ObjectId(userId);
+
+    const cacheKey = `dashboard:${userId}:${period}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached, fromCache: true });
+    }
     const now = new Date();
 
     let startDate, endDate;
@@ -478,15 +492,17 @@ exports.getDashboard = async (req, res) => {
       if (s._id === "expense") expense = s.total;
     });
 
-    res.json({
-      success: true,
-      data: {
-        summary: { totalIncome: income, totalExpense: expense, netSavings: income - expense },
-        categoryBreakdown: dashboardData[0].categoryBreakdown,
-        trends: dashboardData[0].trends,
-        recentTransactions: recent,
-      },
-    });
+    const result = {
+      summary: { totalIncome: income, totalExpense: expense, netSavings: income - expense },
+      categoryBreakdown: dashboardData[0].categoryBreakdown,
+      trends: dashboardData[0].trends,
+      recentTransactions: recent,
+    };
+
+    // Cache for 5 minutes
+    await cache.set(cacheKey, result, 300);
+
+    res.json({ success: true, data: result });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
