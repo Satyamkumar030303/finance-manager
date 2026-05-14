@@ -1,12 +1,18 @@
 import axiosInstance from "./axios";
 
-export const getTransactions = async (params) => {
+export const getTransactions = async (filters = {}) => {
+  const params = { ...filters };
+  // <input type="month"> stores "YYYY-MM"; backend expects numeric month + year.
+  if (typeof params.month === "string" && params.month.includes("-")) {
+    const [y, m] = params.month.split("-");
+    params.month = parseInt(m, 10);
+    params.year = parseInt(y, 10);
+  }
 
   const res = await axiosInstance.get("/transactions", { params });
 
   // backend returns { success, data, pagination }
   return res.data?.data || [];
-
 };
 
 export const createTransaction = async (payload) => {

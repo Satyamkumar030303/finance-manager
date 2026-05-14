@@ -65,19 +65,19 @@ export default function SettingsPage() {
     mutationFn: (data) => api.put("/users/profile", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast.success("Profile updated");
+      toast.success(t("settings.profile_updated"));
       setProfileForm(null);
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Update failed"),
+    onError: (err) => toast.error(err.response?.data?.message || t("common.error")),
   });
 
   const passwordMutation = useMutation({
     mutationFn: (data) => api.put("/users/change-password", data),
     onSuccess: () => {
-      toast.success("Password changed successfully");
+      toast.success(t("settings.password_changed"));
       setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Failed to change password"),
+    onError: (err) => toast.error(err.response?.data?.message || t("common.error")),
   });
 
   const handleProfileSubmit = (e) => {
@@ -87,8 +87,8 @@ export default function SettingsPage() {
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    if (pwForm.newPassword !== pwForm.confirmPassword) return toast.error("Passwords don't match");
-    if (pwForm.newPassword.length < 6) return toast.error("Password must be at least 6 characters");
+    if (pwForm.newPassword !== pwForm.confirmPassword) return toast.error(t("settings.password_mismatch"));
+    if (pwForm.newPassword.length < 6) return toast.error(t("settings.password_too_short"));
     passwordMutation.mutate({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
   };
 
@@ -108,19 +108,19 @@ export default function SettingsPage() {
       <div className="max-w-2xl mx-auto space-y-5">
         <div>
           <h1 className="page-title">{t("settings.title")}</h1>
-          <p className="page-subtitle">Manage your account and preferences</p>
+          <p className="page-subtitle">{t("settings.subtitle")}</p>
         </div>
 
         {/* ── Appearance ── */}
-        <SectionCard icon={Palette} title="Appearance">
+        <SectionCard icon={Palette} title={t("settings.appearance")}>
           <div className="space-y-5">
             {/* Theme */}
             <div>
-              <p className="label mb-2">Theme</p>
+              <p className="label mb-2">{t("settings.theme")}</p>
               <div className="flex gap-3">
                 {[
-                  { val: "light", icon: Sun, label: "Light" },
-                  { val: "dark",  icon: Moon, label: "Dark" },
+                  { val: "light", icon: Sun, label: t("settings.light") },
+                  { val: "dark",  icon: Moon, label: t("settings.dark") },
                 ].map(({ val, icon: Icon, label }) => (
                   <button
                     key={val}
@@ -139,7 +139,7 @@ export default function SettingsPage() {
 
             {/* Font */}
             <div>
-              <p className="label mb-2">Interface Font</p>
+              <p className="label mb-2">{t("settings.interface_font")}</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {fonts.map((f) => (
                   <button
@@ -161,7 +161,7 @@ export default function SettingsPage() {
         </SectionCard>
 
         {/* ── Profile ── */}
-        <SectionCard icon={User} title="Profile Information">
+        <SectionCard icon={User} title={t("settings.profile_information")}>
           {/* Avatar row */}
           <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-100 dark:border-gray-800">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600
@@ -173,7 +173,7 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">{profile?.email}</p>
               {profile?.tier === "premium" && (
                 <span className="badge-yellow mt-1">
-                  <Sparkles size={9} /> Premium
+                  <Sparkles size={9} /> {t("common.premium")}
                 </span>
               )}
             </div>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
 
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
-              <label className="label">Full Name</label>
+              <label className="label">{t("settings.name")}</label>
               <input
                 value={formData.name}
                 onChange={(e) => setProfileForm({ ...formData, name: e.target.value })}
@@ -190,7 +190,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="label">Email</label>
+              <label className="label">{t("settings.email")}</label>
               <input
                 value={profile?.email || ""}
                 disabled
@@ -208,16 +208,16 @@ export default function SettingsPage() {
             </div>
             <button type="submit" disabled={profileMutation.isPending} className="btn-primary">
               <Save size={14} />
-              {profileMutation.isPending ? "Saving..." : "Save Profile"}
+              {profileMutation.isPending ? t("settings.saving") : t("settings.save_profile")}
             </button>
           </form>
         </SectionCard>
 
         {/* ── Language & Currency ── */}
-        <SectionCard icon={Globe} title="Language & Currency">
+        <SectionCard icon={Globe} title={t("settings.language_currency")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="label">Display Language</label>
+              <label className="label">{t("settings.display_language")}</label>
               <select
                 value={formData.preferredLanguage}
                 onChange={(e) => setProfileForm({ ...formData, preferredLanguage: e.target.value })}
@@ -227,7 +227,7 @@ export default function SettingsPage() {
               </select>
             </div>
             <div>
-              <label className="label">Currency</label>
+              <label className="label">{t("settings.currency")}</label>
               <select
                 value={formData.preferredCurrency}
                 onChange={(e) => setProfileForm({ ...formData, preferredCurrency: e.target.value })}
@@ -243,49 +243,49 @@ export default function SettingsPage() {
             className="btn-primary mt-4"
           >
             <Save size={14} />
-            {profileMutation.isPending ? "Saving..." : "Save Preferences"}
+            {profileMutation.isPending ? t("settings.saving") : t("settings.save_preferences")}
           </button>
         </SectionCard>
 
         {/* ── Change Password ── */}
-        <SectionCard icon={Lock} title="Change Password">
+        <SectionCard icon={Lock} title={t("settings.change_password")}>
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
-              <label className="label">Current Password</label>
+              <label className="label">{t("settings.current_password")}</label>
               <input
                 type="password"
                 value={pwForm.currentPassword}
                 onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
-                placeholder="••••••••"
+                placeholder={t("settings.current_pw_placeholder")}
                 className="input"
                 required
               />
             </div>
             <div>
-              <label className="label">New Password</label>
+              <label className="label">{t("settings.new_password")}</label>
               <input
                 type="password"
                 value={pwForm.newPassword}
                 onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-                placeholder="Min. 6 characters"
+                placeholder={t("settings.new_pw_placeholder")}
                 className="input"
                 required minLength={6}
               />
             </div>
             <div>
-              <label className="label">Confirm New Password</label>
+              <label className="label">{t("settings.confirm_new_password")}</label>
               <input
                 type="password"
                 value={pwForm.confirmPassword}
                 onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
-                placeholder="Re-enter new password"
+                placeholder={t("settings.confirm_pw_placeholder")}
                 className="input"
                 required
               />
             </div>
             <button type="submit" disabled={passwordMutation.isPending} className="btn-primary">
               <Lock size={14} />
-              {passwordMutation.isPending ? "Changing..." : "Change Password"}
+              {passwordMutation.isPending ? t("settings.changing") : t("settings.change_password")}
             </button>
           </form>
         </SectionCard>
@@ -293,21 +293,21 @@ export default function SettingsPage() {
         {/* ── Danger Zone ── */}
         <div className="card border-red-200 dark:border-red-900/50 overflow-hidden">
           <div className="px-6 py-4 border-b border-red-100 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
-            <h2 className="text-sm font-semibold text-red-700 dark:text-red-400">Danger Zone</h2>
+            <h2 className="text-sm font-semibold text-red-700 dark:text-red-400">{t("settings.danger_zone")}</h2>
           </div>
           <div className="p-6 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Delete Account</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{t("settings.delete_account")}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Permanently delete your account and all data
+                {t("settings.delete_account_help")}
               </p>
             </div>
             <button
               className="btn border border-red-400 dark:border-red-700 text-red-500 dark:text-red-400
                          hover:bg-red-50 dark:hover:bg-red-900/30 btn-sm flex-shrink-0"
-              onClick={() => toast.error("Contact support to delete your account")}
+              onClick={() => toast.error(t("settings.delete_via_support"))}
             >
-              Delete Account
+              {t("settings.delete_account")}
             </button>
           </div>
         </div>

@@ -5,11 +5,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useUpdateTransaction } from "../hooks/useUpdateTransaction";
 import { useCurrency } from "../context/CurrencyContext";
-
-const CATEGORIES = [
-  "Food", "Travel", "Shopping", "Salary", "Bills",
-  "Entertainment", "Health", "Education", "Investment", "Miscellaneous",
-];
+import { CATEGORIES } from "../constants/transaction";
 
 export default function EditTransactionModal({ transaction, onClose }) {
   const { t } = useTranslation();
@@ -44,13 +40,13 @@ export default function EditTransactionModal({ transaction, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const amount = parseFloat(form.amount);
-    if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!amount || amount <= 0) { toast.error(t("transactions.invalid_amount")); return; }
 
     updateTx(
       { id: transaction._id, payload: { ...form, amount } },
       {
-        onSuccess: () => { toast.success("Transaction updated"); onClose(); },
-        onError: () => toast.error("Failed to update"),
+        onSuccess: () => { toast.success(t("transactions.updated")); onClose(); },
+        onError: () => toast.error(t("transactions.update_failed")),
       }
     );
   };

@@ -28,10 +28,10 @@ function GoalForm({ onClose, existing }) {
       existing ? api.put(`/goals/${existing._id}`, data) : api.post("/goals", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
-      toast.success(existing ? "Goal updated" : "Goal created");
+      toast.success(existing ? t("goals.updated") : t("goals.created"));
       onClose();
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Error"),
+    onError: (err) => toast.error(err.response?.data?.message || t("common.error")),
   });
 
   return createPortal(
@@ -71,7 +71,7 @@ function GoalForm({ onClose, existing }) {
           </div>
           <div>
             <label className="label">{t("goals.goal_name")}</label>
-            <input placeholder="e.g., Emergency Fund" value={form.name}
+            <input placeholder={t("goals.goal_name_placeholder")} value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" required />
           </div>
           <div>
@@ -107,10 +107,10 @@ function ContributeModal({ goal, onClose }) {
     mutationFn: () => api.post(`/goals/${goal._id}/contribute`, { amount: parseFloat(amount) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
-      toast.success("Contribution added!");
+      toast.success(t("goals.contribution_added"));
       onClose();
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Error"),
+    onError: (err) => toast.error(err.response?.data?.message || t("common.error")),
   });
 
   return createPortal(
@@ -158,7 +158,7 @@ export default function GoalsPage() {
     mutationFn: (id) => api.delete(`/goals/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
-      toast.success("Goal deleted");
+      toast.success(t("goals.deleted"));
     },
   });
 

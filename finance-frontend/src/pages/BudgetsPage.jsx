@@ -7,11 +7,7 @@ import { PlusCircle, Trash2, Edit2, AlertTriangle, CheckCircle, X } from "lucide
 import { createPortal } from "react-dom";
 import api from "../api/axios";
 import { useCurrency } from "../context/CurrencyContext";
-
-const CATEGORIES = [
-  "Food", "Transport", "Shopping", "Entertainment", "Utilities",
-  "Health", "Education", "Finance", "Telecom", "Travel", "Miscellaneous",
-];
+import { CATEGORIES } from "../constants/transaction";
 
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
@@ -24,21 +20,21 @@ function BudgetForm({ onClose, existing }) {
     category: existing?.category || "Food",
     limitAmount: existing?.budget || "",
     alertThreshold: existing?.alertThreshold || 80,
-    month: currentMonth,
-    year: currentYear,
+    month: existing?.month || currentMonth,
+    year: existing?.year || currentYear,
   });
 
   const mutation = useMutation({
     mutationFn: (data) =>
       existing
-        ? api.put(`/budgets/${existing.id}`, data)
+        ? api.put(`/budgets/${existing._id}`, data)
         : api.post("/budgets", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budget-comparison"] });
-      toast.success(existing ? "Budget updated" : "Budget created");
+      toast.success(existing ? t("budgets.updated") : t("budgets.created"));
       onClose();
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Error"),
+    onError: (err) => toast.error(err.response?.data?.message || t("common.error")),
   });
 
   const handleSubmit = (e) => {
@@ -115,7 +111,7 @@ export default function BudgetsPage() {
     mutationFn: (id) => api.delete(`/budgets/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budget-comparison"] });
-      toast.success("Budget deleted");
+      toast.success(t("budgets.deleted"));
     },
   });
 
@@ -157,10 +153,8 @@ export default function BudgetsPage() {
               onChange={(e) => setMonth(parseInt(e.target.value))}
               className="input w-auto text-sm"
             >
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("default", { month: "long" })}
-                </option>
+              {["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"].map((k, i) => (
+                <option key={i + 1} value={i + 1}>{t(`months.${k}`)}</option>
               ))}
             </select>
             <input
@@ -194,7 +188,7 @@ export default function BudgetsPage() {
           <div className="grid gap-4 md:grid-cols-2">
             {comparison.map((b) => (
               <div
-                key={b.category}
+                key={b._id}
                 className={`card p-5 space-y-3 border-l-4 ${
                   b.status === "Exceeded"
                     ? "border-l-red-500"
@@ -209,13 +203,13 @@ export default function BudgetsPage() {
                       {t(`categories.${b.category?.toLowerCase()}`, b.category)}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {fmt(b.actual)} of {fmt(b.budget)} {t("budgets.spent").toLowerCase()}
+                      {fmt(b.actual)} / {fmt(b.budget)} {t("budgets.spent").toLowerCase()}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {statusBadge(b)}
                     <button
-                      onClick={() => { setEditBudget({ ...b, id: b._id }); setShowForm(true); }}
+                      onClick={() => { setEditBudget(b); setShowForm(true); }}
                       className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                     >
                       <Edit2 size={13} />

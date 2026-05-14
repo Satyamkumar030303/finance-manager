@@ -5,11 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useCreateTransaction } from "../hooks/useCreateTransaction";
 import { useUpdateTransaction } from "../hooks/useUpdateTransaction";
 import { useCurrency } from "../context/CurrencyContext";
-
-const CATEGORIES = [
-  "Food", "Travel", "Shopping", "Salary", "Bills",
-  "Entertainment", "Health", "Education", "Investment", "Miscellaneous",
-];
+import { CATEGORIES } from "../constants/transaction";
 
 const EMPTY = {
   amount: "",
@@ -53,11 +49,11 @@ export default function TransactionForm({ editing, setEditing }) {
     e.preventDefault();
     const amount = parseFloat(form.amount);
     if (!amount || amount <= 0) {
-      toast.error("Enter a valid amount");
+      toast.error(t("transactions.invalid_amount"));
       return;
     }
     if (!form.transactionDate) {
-      toast.error("Please select a date");
+      toast.error(t("transactions.select_date"));
       return;
     }
 
@@ -68,19 +64,19 @@ export default function TransactionForm({ editing, setEditing }) {
         { id: editing._id, payload },
         {
           onSuccess: () => {
-            toast.success("Transaction updated");
+            toast.success(t("transactions.updated"));
             setEditing(null);
           },
-          onError: () => toast.error("Failed to update transaction"),
+          onError: () => toast.error(t("transactions.update_failed")),
         }
       );
     } else {
       createTx(payload, {
         onSuccess: () => {
-          toast.success("Transaction added");
+          toast.success(t("transactions.added"));
           setForm(EMPTY);
         },
-        onError: () => toast.error("Failed to add transaction"),
+        onError: () => toast.error(t("transactions.add_failed")),
       });
     }
   };

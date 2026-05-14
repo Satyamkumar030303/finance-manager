@@ -45,11 +45,14 @@ exports.getBudgetComparison = async (userId, month, year) => {
             const percentage = budget.limitAmount > 0 ? Math.round((spent / budget.limitAmount) * 100) : 0;
 
             return {
+                _id: budget._id,
                 category: budget.category,
                 budget: budget.limitAmount,
                 actual: spent,
                 percentage,
                 alertThreshold: budget.alertThreshold || 80,
+                month: budget.month,
+                year: budget.year,
                 status: spent > budget.limitAmount ? "Exceeded" : percentage >= (budget.alertThreshold || 80) ? "Warning" : "Within Budget",
             };
         });

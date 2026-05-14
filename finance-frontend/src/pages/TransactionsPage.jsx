@@ -18,6 +18,11 @@ export default function TransactionsPage() {
 
   const activeFilters = { ...filters, ...(search ? { search } : {}) };
 
+  const clearFilters = () => {
+    setFilters({});
+    setSearch("");
+  };
+
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -37,9 +42,9 @@ export default function TransactionsPage() {
       a.download = `transactions-${new Date().toISOString().substring(0, 10)}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
-      toast.success("Exported successfully");
+      toast.success(t("transactions.export_ok"));
     } catch {
-      toast.error("Export failed");
+      toast.error(t("transactions.export_failed"));
     } finally {
       setExporting(false);
     }
@@ -57,7 +62,7 @@ export default function TransactionsPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="page-title">{t("nav.transactions")}</h1>
-            <p className="page-subtitle">Add, filter, and manage your transactions</p>
+            <p className="page-subtitle">{t("transactions.add_to_manage")}</p>
           </div>
           <button
             onClick={handleExport}
@@ -65,14 +70,14 @@ export default function TransactionsPage() {
             className="btn-secondary btn-sm"
           >
             <Download size={14} />
-            {exporting ? "Exporting..." : "Export CSV"}
+            {exporting ? t("common.exporting") : t("common.export_csv")}
           </button>
         </div>
 
         {/* Add form */}
         <div className="card p-5">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            Add Transaction
+            {t("transactions.add")}
           </h2>
           <TransactionForm editing={null} setEditing={() => {}} />
         </div>
@@ -84,7 +89,7 @@ export default function TransactionsPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by description or category..."
+              placeholder={t("transactions.search_placeholder")}
               className="input pl-10 pr-10"
             />
             {search && (
@@ -102,9 +107,9 @@ export default function TransactionsPage() {
         {/* List */}
         <div className="card p-5">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            All Transactions
+            {t("transactions.all_transactions")}
           </h2>
-          <TransactionList filters={activeFilters} setEditing={setEditing} />
+          <TransactionList filters={activeFilters} setEditing={setEditing} clearFilters={clearFilters} />
         </div>
 
         {editing && (

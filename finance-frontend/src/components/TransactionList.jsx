@@ -1,9 +1,12 @@
+import { Receipt, Filter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useTransactions } from "../hooks/useTransactions";
 import { useDeleteTransaction } from "../hooks/useDeleteTransaction";
 import TransactionItem from "./TransactionItem";
-import { Receipt } from "lucide-react";
+import EmptyState from "./ui/EmptyState";
 
-export default function TransactionList({ filters, setEditing }) {
+export default function TransactionList({ filters, setEditing, clearFilters }) {
+  const { t } = useTranslation();
   const { data, isLoading } = useTransactions(filters);
   const { mutate: deleteTx } = useDeleteTransaction();
 
@@ -25,14 +28,35 @@ export default function TransactionList({ filters, setEditing }) {
   }
 
   if (!data?.length) {
+    const hasFilters = Object.values(filters || {}).some(
+      (v) => v !== "" && v !== null && v !== undefined
+    );
+
+    if (hasFilters) {
+      return (
+        <EmptyState
+          bare
+          icon={Filter}
+          title={t("transactions.no_match_title")}
+          description={t("transactions.no_match_help")}
+          action={
+            clearFilters && (
+              <button onClick={clearFilters} className="btn-secondary btn-sm">
+                {t("common.clear_filters")}
+              </button>
+            )
+          }
+        />
+      );
+    }
+
     return (
-      <div className="py-10 text-center">
-        <Receipt size={32} className="mx-auto mb-3 text-gray-300 dark:text-gray-700" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">No transactions found</p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          Try adjusting your filters or add a new transaction above.
-        </p>
-      </div>
+      <EmptyState
+        bare
+        icon={Receipt}
+        title={t("transactions.no_yet_title")}
+        description={t("transactions.no_yet_help")}
+      />
     );
   }
 

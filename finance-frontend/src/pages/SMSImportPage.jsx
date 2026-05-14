@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { MessageSquare, CheckCircle, AlertCircle, Plus } from "lucide-react";
 import { parseSMS, getQueue, enqueueTransaction, flushQueue } from "../services/sms.service";
@@ -8,6 +9,7 @@ import api from "../api/axios";
 import { useCurrency } from "../context/CurrencyContext";
 
 export default function SMSImportPage() {
+  const { t } = useTranslation();
   const { fmt } = useCurrency();
   const queryClient = useQueryClient();
   const [smsText, setSmsText] = useState("");
@@ -20,13 +22,12 @@ export default function SMSImportPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Transaction added from SMS");
+      toast.success(t("sms.added_toast"));
       setSmsText("");
       setParsed(null);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Failed to save");
-      // Enqueue for retry if offline
       if (!navigator.onLine && parsed) enqueueTransaction(parsed);
     },
   });
@@ -34,10 +35,10 @@ export default function SMSImportPage() {
   const handleParse = () => {
     setParseError("");
     setParsed(null);
-    if (!smsText.trim()) return setParseError("Paste an SMS message to parse");
+    if (!smsText.trim()) return setParseError(t("sms.parse_empty"));
     const result = parseSMS(smsText);
     if (!result) {
-      setParseError("Could not detect a financial transaction in this SMS. Try a bank debit/credit message.");
+      setParseError(t("sms.parse_no_match"));
     } else {
       setParsed(result);
     }
@@ -46,10 +47,10 @@ export default function SMSImportPage() {
   const handleFlush = async () => {
     const { submitted, failed } = await flushQueue((url, data) => api.post(url, data));
     if (submitted > 0) {
-      toast.success(`${submitted} queued transactions submitted`);
+      toast.success(t("sms.queued_submitted", { count: submitted }));
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     }
-    if (failed > 0) toast.error(`${failed} transactions still failed`);
+    if (failed > 0) toast.error(t("sms.queued_failed", { count: failed }));
   };
 
   const EXAMPLE_SMS = [
@@ -64,109 +65,106 @@ export default function SMSImportPage() {
 
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">SMS Import</h1>
-          <p className="text-sm text-gray-500">Paste a bank/UPI SMS to automatically create a transaction</p>
+          <h1 className="page-title">{t("sms.title")}</h1>
+          <p className="page-subtitle">{t("sms.subtitle")}</p>
         </div>
 
-        {/* On Android, auto-listener status would show here */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
-          <p className="font-medium mb-1">How it works</p>
-          <p>Paste any bank or UPI payment SMS. The parser detects the amount, type (debit/credit), merchant, and category automatically. On Android, this works in the background via the native app.</p>
+        <div className="banner-blue text-sm">
+          <div>
+            <p className="font-medium mb-1">{t("sms.how_it_works")}</p>
+            <p>{t("sms.how_it_works_help")}</p>
+          </div>
         </div>
 
-        {/* SMS Input */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
-          <label className="block text-sm font-medium text-gray-700">Paste SMS Message</label>
+        <div className="card p-5 space-y-4">
+          <label className="label">{t("sms.paste_label")}</label>
           <textarea
             value={smsText}
             onChange={(e) => { setSmsText(e.target.value); setParsed(null); setParseError(""); }}
-            placeholder="Dear Customer, Rs.1,500.00 debited from A/c XX1234..."
+            placeholder={t("sms.paste_placeholder")}
             rows={4}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+            className="input resize-none"
           />
 
-          {/* Example buttons */}
           <div>
-            <p className="text-xs text-gray-400 mb-2">Try an example:</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t("sms.try_example")}</p>
             <div className="flex flex-wrap gap-2">
               {EXAMPLE_SMS.map((ex, i) => (
                 <button
                   key={i}
                   onClick={() => { setSmsText(ex); setParsed(null); setParseError(""); }}
-                  className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition"
+                  className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Example {i + 1}
+                  {t("sms.example_n", { n: i + 1 })}
                 </button>
               ))}
             </div>
           </div>
 
-          <button
-            onClick={handleParse}
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
-          >
-            <MessageSquare size={15} /> Parse SMS
+          <button onClick={handleParse} className="btn-primary btn-sm">
+            <MessageSquare size={15} /> {t("sms.parse")}
           </button>
         </div>
 
-        {/* Parse result */}
         {parseError && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-            <AlertCircle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">{parseError}</p>
+          <div className="banner-red text-sm">
+            <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+            <p>{parseError}</p>
           </div>
         )}
 
         {parsed && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-5 space-y-4">
+          <div className="card p-5 space-y-4 border-l-4 border-l-emerald-500 dark:border-l-emerald-400">
             <div className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-green-600" />
-              <p className="font-semibold text-green-700">Transaction Detected</p>
+              <CheckCircle size={18} className="text-emerald-600 dark:text-emerald-400" />
+              <p className="font-semibold text-emerald-700 dark:text-emerald-400">{t("sms.detected")}</p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-500">Type</p>
-                <p className={`font-semibold ${parsed.type === "income" ? "text-green-700" : "text-red-700"}`}>
-                  {parsed.type === "income" ? "Credit (Income)" : "Debit (Expense)"}
+                <p className="text-gray-500 dark:text-gray-400">{t("sms.type")}</p>
+                <p className={`font-semibold ${parsed.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                  {parsed.type === "income" ? t("sms.credit_income") : t("sms.debit_expense")}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Amount</p>
-                <p className="font-semibold text-gray-800">{fmt(parsed.amount)}</p>
+                <p className="text-gray-500 dark:text-gray-400">{t("sms.amount")}</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{fmt(parsed.amount)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Category</p>
-                <p className="font-semibold text-gray-800">{parsed.category}</p>
+                <p className="text-gray-500 dark:text-gray-400">{t("sms.category")}</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{t(`categories.${String(parsed.category || "").toLowerCase()}`, parsed.category)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Merchant</p>
-                <p className="font-semibold text-gray-800">{parsed.merchant || "Unknown"}</p>
+                <p className="text-gray-500 dark:text-gray-400">{t("sms.merchant")}</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{parsed.merchant || t("common.unknown")}</p>
               </div>
               {parsed.description && (
                 <div className="col-span-2">
-                  <p className="text-gray-500">Description</p>
-                  <p className="font-medium text-gray-700 text-xs">{parsed.description.slice(0, 100)}</p>
+                  <p className="text-gray-500 dark:text-gray-400">{t("sms.description")}</p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300 text-xs">{parsed.description.slice(0, 100)}</p>
                 </div>
               )}
             </div>
             <button
-              onClick={() => createMutation.mutate(parsed)}
+              onClick={() => {
+                const { rawSMS, senderSMS, ...payload } = parsed;
+                createMutation.mutate(payload);
+              }}
               disabled={createMutation.isPending}
-              className="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 disabled:opacity-60 text-sm font-medium"
+              className="btn-success btn-sm"
             >
               <Plus size={15} />
-              {createMutation.isPending ? "Adding..." : "Add Transaction"}
+              {createMutation.isPending ? t("sms.adding") : t("sms.add")}
             </button>
           </div>
         )}
 
-        {/* Offline Queue */}
         {queue.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <p className="font-medium text-yellow-800 mb-1">{queue.length} transactions pending sync</p>
-            <p className="text-sm text-yellow-700 mb-3">These were saved offline and will be submitted when you're back online.</p>
-            <button onClick={handleFlush} className="text-sm bg-yellow-600 text-white px-4 py-1.5 rounded-lg hover:bg-yellow-700">
-              Sync Now
+          <div className="banner-yellow flex-col items-stretch">
+            <p className="font-medium mb-1">{t("sms.pending_sync", { count: queue.length })}</p>
+            <p className="text-sm mb-3 opacity-90">{t("sms.pending_sync_help")}</p>
+            <button onClick={handleFlush} className="btn-primary btn-sm self-start">
+              {t("sms.sync_now")}
             </button>
           </div>
         )}

@@ -1,15 +1,16 @@
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip,
+  XAxis, YAxis, Tooltip,
   CartesianGrid, ResponsiveContainer, Area, AreaChart,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 import { useCurrency } from "../../context/CurrencyContext";
 
-function CustomTooltip({ active, payload, label, fmt }) {
+function CustomTooltip({ active, payload, label, fmt, periodLabel }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg px-3 py-2">
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Period {label}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{periodLabel} {label}</p>
       <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
         {fmt(payload[0].value)}
       </p>
@@ -18,6 +19,7 @@ function CustomTooltip({ active, payload, label, fmt }) {
 }
 
 export default function MonthlyTrendChart({ data, period }) {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const { fmt, compact } = useCurrency();
 
@@ -34,10 +36,10 @@ export default function MonthlyTrendChart({ data, period }) {
       return { label: day, amount: found ? found.total : 0 };
     });
   } else if (period === "year") {
-    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const MONTH_KEYS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
     chartData = Array.from({ length: 12 }, (_, i) => {
       const found = data.find((d) => d._id === i + 1);
-      return { label: MONTHS[i], amount: found ? found.total : 0 };
+      return { label: t(`months.${MONTH_KEYS[i]}`), amount: found ? found.total : 0 };
     });
   } else {
     chartData = data.map((d) => ({ label: d._id, amount: d.total }));
@@ -46,7 +48,7 @@ export default function MonthlyTrendChart({ data, period }) {
   if (chartData.every((d) => d.amount === 0)) {
     return (
       <div className="flex items-center justify-center h-52 text-sm text-gray-400 dark:text-gray-500">
-        No trend data available
+        {t("reports.no_trend_data")}
       </div>
     );
   }
@@ -75,7 +77,7 @@ export default function MonthlyTrendChart({ data, period }) {
           tickFormatter={(v) => compact(v)}
           width={48}
         />
-        <Tooltip content={<CustomTooltip fmt={fmt} />} />
+        <Tooltip content={<CustomTooltip fmt={fmt} periodLabel={t("common.month")} />} />
         <Area
           type="monotone"
           dataKey="amount"

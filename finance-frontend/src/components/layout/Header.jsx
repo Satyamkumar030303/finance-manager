@@ -42,6 +42,7 @@ function IconBtn({ onClick, label, children }) {
 function ProfileDropdown({ user, onClose }) {
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
+  const { t } = useTranslation();
 
   const go = (path) => { navigate(path); onClose(); };
   const handleLogout = () => { logout(); navigate("/login"); onClose(); };
@@ -53,7 +54,7 @@ function ProfileDropdown({ user, onClose }) {
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
         {user?.tier === "premium" && (
           <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-yellow-600 dark:text-yellow-400">
-            <Sparkles size={9} /> Premium
+            <Sparkles size={9} /> {t("common.premium")}
           </span>
         )}
       </div>
@@ -62,14 +63,14 @@ function ProfileDropdown({ user, onClose }) {
         className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300
                    hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
       >
-        <Settings size={14} /> Settings
+        <Settings size={14} /> {t("nav.settings")}
       </button>
       <button
         onClick={handleLogout}
         className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 dark:text-red-400
                    hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
       >
-        <LogOut size={14} /> Logout
+        <LogOut size={14} /> {t("nav.logout")}
       </button>
     </div>
   );
@@ -114,7 +115,7 @@ export default function Header({ onMenuClick }) {
           onClick={onMenuClick}
           className="lg:hidden p-2 rounded-xl text-gray-500 dark:text-gray-400
                      hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Open menu"
+          aria-label={t("header.open_menu")}
         >
           <Menu size={20} />
         </button>
@@ -154,12 +155,12 @@ export default function Header({ onMenuClick }) {
         </div>
 
         {/* Theme toggle */}
-        <IconBtn onClick={toggleTheme} label={isDark ? "Switch to light mode" : "Switch to dark mode"}>
+        <IconBtn onClick={toggleTheme} label={isDark ? t("header.switch_to_light") : t("header.switch_to_dark")}>
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </IconBtn>
 
         {/* Notifications */}
-        <IconBtn label="Notifications">
+        <IconBtn label={t("header.notifications")}>
           <div className="relative">
             <Bell size={18} />
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />

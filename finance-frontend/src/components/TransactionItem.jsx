@@ -95,7 +95,7 @@ export default function TransactionItem({ transaction, setEditing, onDelete }) {
               onClick={() => setEditing(transaction)}
               className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
                          hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
-              aria-label="Edit"
+              aria-label={t("common.edit")}
             >
               <Pencil size={14} />
             </button>
@@ -103,7 +103,7 @@ export default function TransactionItem({ transaction, setEditing, onDelete }) {
               onClick={() => setConfirmOpen(true)}
               className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400
                          hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-              aria-label="Delete"
+              aria-label={t("common.delete")}
             >
               <Trash2 size={14} />
             </button>

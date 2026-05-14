@@ -97,208 +97,114 @@ exports.getUserTransactions = async (req, res, next) => {
 
 
 
-// DASHBOARD SUMMARY
+// MONTHLY SUMMARY (Reports page)
 exports.getMonthlySummary = async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
     const userId = req.user.id;
-    const { period } = req.query;
-
-    const now = new Date();
-    let startDate = null;
-    let endDate = null;
-
-    if (period === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const m = parseInt(req.query.month, 10);
+    const y = parseInt(req.query.year, 10);
+    if (Number.isNaN(m) || Number.isNaN(y)) {
+      return res.status(400).json({ success: false, message: "month and year are required" });
     }
 
-    if (period === "lastMonth") {
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      endDate = new Date(now.getFullYear(), now.getMonth(), 0);
-    }
-
-    if (period === "year") {
-      startDate = new Date(now.getFullYear(), 0, 1);
-      endDate = new Date(now.getFullYear(), 11, 31);
-    }
-
-    let matchStage = {
-      user: new mongoose.Types.ObjectId(userId)
-    };
-
-    if (period !== "all" && startDate && endDate) {
-      matchStage.transactionDate = {
-        $gte: startDate,
-        $lte: endDate,
-      };
-    }
+    const startDate = new Date(y, m - 1, 1);
+    const endDate   = new Date(y, m,     1);
 
     const result = await Transaction.aggregate([
-      { $match: matchStage },
-
-      {
-        $group: {
-          _id: "$type",
-          total: { $sum: "$amount" },
-        },
-      },
+      { $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          transactionDate: { $gte: startDate, $lt: endDate },
+      }},
+      { $group: { _id: "$type", total: { $sum: "$amount" } } },
     ]);
 
-    let income = 0;
-    let expense = 0;
-
-    result.forEach((item) => {
-      if (item._id === "income") income = item.total;
-      if (item._id === "expense") expense = item.total;
-    });
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const row of result) {
+      if (row._id === "income")  totalIncome  = row.total;
+      if (row._id === "expense") totalExpense = row.total;
+    }
 
     res.json({
       success: true,
       data: {
-        totalIncome: income,
-        totalExpense: expense,
-        netSavings: income - expense,
+        totalIncome,
+        totalExpense,
+        netSavings: totalIncome - totalExpense,
       },
     });
-//      console.log("Aggregation result:", result);
-//   console.log("USER ID:", req.user.id);
-//   console.log("MATCH STAGE:", matchStage);
-//   console.log("AGG RESULT:", result);
-
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
- 
 };
 
 
-// CATEGORY SUMMARY
+// CATEGORY SUMMARY (Reports page)
 exports.getCategorySummary = async (req, res) => {
   try {
-
     const userId = req.user.id;
-    const { period } = req.query;
-
-    let match = {
-      user: new mongoose.Types.ObjectId(userId)
-    };
-
-    if (period === "month") {
-      const start = new Date();
-      start.setDate(1);
-      match.transactionDate = { $gte: start };
+    const m = parseInt(req.query.month, 10);
+    const y = parseInt(req.query.year, 10);
+    if (Number.isNaN(m) || Number.isNaN(y)) {
+      return res.status(400).json({ success: false, message: "month and year are required" });
     }
 
-    if (period === "year") {
-      const start = new Date(new Date().getFullYear(), 0, 1);
-      match.transactionDate = { $gte: start };
-    }
+    const startDate = new Date(y, m - 1, 1);
+    const endDate   = new Date(y, m,     1);
 
-    const summary = await Transaction.aggregate([
-      { $match: match },
-      { $match: { type: "expense" } },
-
-      {
-        $group: {
-          _id: { $toLower: "$category" }, // normalize
-          total: { $sum: "$amount" }
-        }
-      },
-
-      {
-        $project: {
-          _id: 0,
-          category: {
-            $concat: [
-              { $toUpper: { $substrCP: ["$_id", 0, 1] } },
-              { $substrCP: ["$_id", 1, { $strLenCP: "$_id" }] }
-            ]
-          },
-          amount: "$total"
-        }
-      }
-
+    const data = await Transaction.aggregate([
+      { $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          type: "expense",
+          transactionDate: { $gte: startDate, $lt: endDate },
+      }},
+      { $group: { _id: "$category", total: { $sum: "$amount" } } },
+      { $sort: { total: -1 } },
     ]);
 
-    res.json(summary);
-
+    res.json({ success: true, data });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// MONTHLY TRENDS
-// MONTHLY / DAILY / YEARLY TRENDS
-// MONTHLY / DAILY / YEARLY TRENDS
+// MONTHLY TRENDS (Reports page — full year, bucketed per month)
 exports.getMonthlyTrends = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { period } = req.query;
-
-    const now = new Date();
-
-    let startDate;
-    let endDate;
-    let groupBy;
-
-    if (period === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      groupBy = { $dayOfMonth: "$transactionDate" };
+    const y = parseInt(req.query.year, 10);
+    if (Number.isNaN(y)) {
+      return res.status(400).json({ success: false, message: "year is required" });
     }
 
-    else if (period === "lastMonth") {
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      endDate = new Date(now.getFullYear(), now.getMonth(), 0);
-      groupBy = { $dayOfMonth: "$transactionDate" };
-    }
+    const startDate = new Date(y, 0, 1);
+    const endDate   = new Date(y + 1, 0, 1);
 
-    else if (period === "year") {
-      startDate = new Date(now.getFullYear(), 0, 1);
-      endDate = new Date(now.getFullYear(), 11, 31);
-      groupBy = { $month: "$transactionDate" };
-    }
-
-    else if (period === "decade") {
-      startDate = new Date(now.getFullYear() - 10, 0, 1);
-      endDate = now;
-      groupBy = { $year: "$transactionDate" };
-    }
-
-    else if (period === "all") {
-      groupBy = { $year: "$transactionDate" };
-    }
-
-    let matchStage = {
-      user: new mongoose.Types.ObjectId(userId),
-      type: "expense"
-    };
-
-    if (period !== "all") {
-      matchStage.transactionDate = {
-        $gte: startDate,
-        $lte: endDate
-      };
-    }
-
-    const trends = await Transaction.aggregate([
-      { $match: matchStage },
-      {
-        $group: {
-          _id: groupBy,
-          total: { $sum: "$amount" }
-        }
-      },
-      { $sort: { _id: 1 } }
+    const rows = await Transaction.aggregate([
+      { $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          transactionDate: { $gte: startDate, $lt: endDate },
+      }},
+      { $group: {
+          _id: { month: { $month: "$transactionDate" }, type: "$type" },
+          total: { $sum: "$amount" },
+      }},
     ]);
 
-    res.json(trends);
+    // Densify to all 12 months so the line chart has a continuous x-axis.
+    const byMonth = new Map();
+    for (let m = 1; m <= 12; m++) byMonth.set(m, { month: m, income: 0, expense: 0 });
+    for (const r of rows) {
+      const slot = byMonth.get(r._id.month);
+      if (!slot) continue;
+      if (r._id.type === "income")  slot.income  = r.total;
+      if (r._id.type === "expense") slot.expense = r.total;
+    }
 
+    res.json({ success: true, data: Array.from(byMonth.values()) });
   } catch (error) {
-    console.error("Trend error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -379,14 +285,30 @@ exports.getRecentTransactions = async (req, res) => {
 // EXPORT TRANSACTIONS AS CSV
 exports.exportTransactions = async (req, res) => {
   try {
-    const { type, category, startDate, endDate } = req.query;
+    const { type, category, month, year, startDate, endDate, search } = req.query;
     const filters = { user: req.user.id };
     if (type) filters.type = type;
     if (category) filters.category = new RegExp(`^${category}$`, "i");
-    if (startDate || endDate) {
+
+    // Prefer month+year (UI), fall back to explicit startDate/endDate.
+    if (month && year) {
+      const m = parseInt(month, 10);
+      const y = parseInt(year, 10);
+      if (!Number.isNaN(m) && !Number.isNaN(y)) {
+        filters.transactionDate = { $gte: new Date(y, m - 1, 1), $lt: new Date(y, m, 1) };
+      }
+    } else if (startDate || endDate) {
       filters.transactionDate = {};
       if (startDate) filters.transactionDate.$gte = new Date(startDate);
       if (endDate) filters.transactionDate.$lte = new Date(endDate);
+    }
+
+    if (search) {
+      filters.$or = [
+        { description: { $regex: search, $options: "i" } },
+        { category:    { $regex: search, $options: "i" } },
+        { merchant:    { $regex: search, $options: "i" } },
+      ];
     }
 
     const transactions = await Transaction.find(filters).sort({ transactionDate: -1 }).limit(5000);

@@ -19,13 +19,20 @@ const isAndroid = () => {
 
 // ─── Regex-based SMS Parser (fast path, handles ~90% of Indian bank SMS) ────
 
-const DEBIT_REGEX = /(?:debited|debit|spent|paid|purchase|withdrawn|payment of|transferred)\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i;
-const CREDIT_REGEX = /(?:credited|credit|received|deposited|refund)\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i;
-const AMOUNT_REGEX = /(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i;
+// Keyword detection — presence-only, decoupled from amount extraction so
+// phrases like "credited with INR 50,000" (SBI) don't fall through.
+// Use action-verb forms only (credited/debited), not noun forms (credit/debit),
+// since "credit card"/"debit card" are instruments, not directions.
+const DEBIT_KEYWORDS = /\b(?:debited|spent|paid|purchase|withdrawn|payment of|transferred|sent|deducted|charged)\b/i;
+const CREDIT_KEYWORDS = /\b(?:credited|received|deposited|refund|cashback|salary|bonus|imps in|neft in)\b/i;
+
+// Amount can appear with the currency token before OR after the number.
+const AMOUNT_REGEX = /(?:(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)|([\d,]+(?:\.\d{1,2})?)\s*(?:rs\.?|inr|₹))/i;
 
 const MERCHANT_PATTERNS = [
-  /(?:at|to|from|merchant|at merchant)\s+([A-Z][A-Za-z0-9\s&.'-]{2,30}?)(?:\s+on|\s+via|\s+ref|$)/i,
+  /(?:at|to|from|merchant|at merchant|by)\s+([A-Z][A-Za-z0-9\s&.'-]{2,30}?)(?:\s+on|\s+via|\s+ref|$)/i,
   /(?:UPI[-\s]?ID:|to VPA|UPI transfer to)\s*([A-Za-z0-9@._-]{3,40})/i,
+  /-\s*([A-Z]{2,6})\s*$/,
 ];
 
 const CATEGORY_MAP = {
@@ -68,25 +75,22 @@ export function parseSMS(smsText, sender = "") {
   const skipKeywords = ["otp", "one time", "verification", "password", "login", "alert: your"];
   if (skipKeywords.some((kw) => text.toLowerCase().includes(kw))) return null;
 
-  let type = null;
-  let amount = null;
+  const isDebit = DEBIT_KEYWORDS.test(text);
+  const isCredit = CREDIT_KEYWORDS.test(text);
 
-  const debitMatch = text.match(DEBIT_REGEX);
-  const creditMatch = text.match(CREDIT_REGEX);
+  // No transactional verb at all — can't classify; skip rather than guess.
+  if (!isDebit && !isCredit) return null;
 
-  if (debitMatch) {
-    type = "expense";
-    amount = parseFloat(debitMatch[1].replace(/,/g, ""));
-  } else if (creditMatch) {
-    type = "income";
-    amount = parseFloat(creditMatch[1].replace(/,/g, ""));
-  } else {
-    // Last resort: find any currency amount
-    const amountMatch = text.match(AMOUNT_REGEX);
-    if (!amountMatch) return null;
-    amount = parseFloat(amountMatch[1].replace(/,/g, ""));
-    type = "expense"; // default assumption
-  }
+  // When both appear (e.g. "debit card was credited"), prefer credit:
+  // "credited" is the action; "debit card" is just the instrument.
+  const type =
+    isCredit && !isDebit ? "income" :
+    isDebit && !isCredit ? "expense" :
+    isCredit ? "income" : "expense";
+
+  const amountMatch = text.match(AMOUNT_REGEX);
+  if (!amountMatch) return null;
+  const amount = parseFloat((amountMatch[1] || amountMatch[2]).replace(/,/g, ""));
 
   if (!amount || amount <= 0 || amount > 10000000) return null;
 
@@ -138,7 +142,7 @@ export async function flushQueue(apiPost) {
   if (queue.length === 0) return { submitted: 0, failed: 0 };
 
   const results = await Promise.allSettled(
-    queue.map((tx) =>
+    queue.map(({ rawSMS, senderSMS, queuedAt, retries, ...tx }) =>
       apiPost("/transactions", tx).catch((err) => {
         throw err;
       })

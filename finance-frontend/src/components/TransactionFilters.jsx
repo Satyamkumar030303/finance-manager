@@ -1,10 +1,6 @@
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-const CATEGORIES = [
-  "Food", "Travel", "Shopping", "Salary", "Bills",
-  "Entertainment", "Health", "Education", "Investment", "Miscellaneous",
-];
+import { CATEGORIES } from "../constants/transaction";
 
 export default function TransactionFilters({ filters, setFilters }) {
   const { t } = useTranslation();

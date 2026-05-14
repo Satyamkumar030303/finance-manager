@@ -17,7 +17,7 @@ exports.createTransaction = async (userId, data) => {
 };
 
 exports.getUserTransactions = async (userId, queryParams = {}) => {
-    const { page = 1, limit = 20, type, category, startDate, endDate, search } = queryParams;
+    const { page = 1, limit = 20, type, category, month, year, startDate, endDate, search } = queryParams;
 
     const pageNumber = parseInt(page);
     const pageSize = Math.min(parseInt(limit), 100); // cap at 100
@@ -33,7 +33,17 @@ exports.getUserTransactions = async (userId, queryParams = {}) => {
         filters.category = normalized;
     }
 
-    if (startDate || endDate) {
+    // Date range: prefer month+year (UI), fall back to startDate/endDate (export/back-compat)
+    if (month && year) {
+        const m = parseInt(month, 10);
+        const y = parseInt(year, 10);
+        if (!Number.isNaN(m) && !Number.isNaN(y)) {
+            filters.transactionDate = {
+                $gte: new Date(y, m - 1, 1),
+                $lt:  new Date(y, m,     1),
+            };
+        }
+    } else if (startDate || endDate) {
         filters.transactionDate = {};
         if (startDate) filters.transactionDate.$gte = new Date(startDate);
         if (endDate) filters.transactionDate.$lte = new Date(endDate);

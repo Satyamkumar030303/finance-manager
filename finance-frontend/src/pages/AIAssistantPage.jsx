@@ -14,6 +14,7 @@ import { useCurrency } from "../context/CurrencyContext";
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ScoreGauge({ score, band, emoji, breakdown }) {
+  const { t } = useTranslation();
   const pct = score || 0;
   const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#f59e0b" : "#ef4444";
   const breakdownEntries = breakdown
@@ -24,7 +25,7 @@ function ScoreGauge({ score, band, emoji, breakdown }) {
     <div className="card p-5">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles size={18} className="text-yellow-500" />
-        <h2 className="font-semibold text-sm">Financial Health Score</h2>
+        <h2 className="font-semibold text-sm">{t("ai.financial_score")}</h2>
       </div>
       <div className="flex items-center gap-6">
         <div className="relative w-24 h-24 flex-shrink-0">
@@ -131,7 +132,7 @@ export default function AIAssistantPage() {
     mutationFn: ({ message, hist }) =>
       api.post("/ai/chat", { message, history: hist, language: i18n.language }),
     onSuccess: (res) => {
-      const reply = res.data.data?.reply || "I couldn't process that. Try again.";
+      const reply = res.data.data?.reply || t("ai.process_error");
       const assistantMsg = { role: "assistant", content: reply };
       setMessages((prev) => [...prev, assistantMsg]);
       setHistory((prev) => [...prev, { role: "assistant", content: reply }]);
@@ -139,7 +140,7 @@ export default function AIAssistantPage() {
     onError: () => {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, I'm having trouble right now. Please try again later." },
+        { role: "assistant", content: t("ai.service_error") },
       ]);
     },
   });
@@ -152,20 +153,20 @@ export default function AIAssistantPage() {
       if (!data || data.unavailable) {
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "Analysis unavailable right now. Try again later." },
+          { role: "assistant", content: t("ai.analysis_unavailable") },
         ]);
         return;
       }
 
       const parts = [];
       if (data.patterns?.length)
-        parts.push(`📊 Patterns:\n${data.patterns.map((p) => `• ${p}`).join("\n")}`);
+        parts.push(`📊 ${t("ai.patterns")}:\n${data.patterns.map((p) => `• ${p}`).join("\n")}`);
       if (data.concerns?.length)
-        parts.push(`⚠️ Concerns:\n${data.concerns.map((c) => `• ${c}`).join("\n")}`);
+        parts.push(`⚠️ ${t("ai.concerns")}:\n${data.concerns.map((c) => `• ${c}`).join("\n")}`);
       if (data.positives?.length)
-        parts.push(`✅ Positives:\n${data.positives.map((p) => `• ${p}`).join("\n")}`);
+        parts.push(`✅ ${t("ai.positives")}:\n${data.positives.map((p) => `• ${p}`).join("\n")}`);
       if (data.actions?.length)
-        parts.push(`💡 Actions:\n${data.actions.map((a) => `• ${a}`).join("\n")}`);
+        parts.push(`💡 ${t("ai.actions")}:\n${data.actions.map((a) => `• ${a}`).join("\n")}`);
       if (data.raw)
         parts.push(data.raw);
 
@@ -173,11 +174,11 @@ export default function AIAssistantPage() {
         ...prev,
         {
           role: "assistant",
-          content: parts.length ? parts.join("\n\n") : "No spending data found yet — add some transactions first.",
+          content: parts.length ? parts.join("\n\n") : t("ai.no_spending_data"),
         },
       ]);
     },
-    onError: () => toast.error("Spending analysis failed"),
+    onError: () => toast.error(t("ai.analysis_failed")),
   });
 
   // GET /ai/predict → { predictedTotal, predictedIncome, byCategory, note }
@@ -192,20 +193,20 @@ export default function AIAssistantPage() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "user", content: "What will my spending look like next month?" },
+        { role: "user", content: t("ai.predict_question") },
         {
           role: "assistant",
           content:
-            `Based on your last 90 days:\n\n` +
-            `• Predicted Income: ${fmt(data?.predictedIncome || 0)}\n` +
-            `• Predicted Expenses: ${fmt(data?.predictedTotal || 0)}\n` +
-            `• Estimated Savings: ${fmt(savings)}\n` +
-            (topCat ? `• Biggest category: ${t(`categories.${topCat[0]?.toLowerCase()}`, topCat[0])} (${fmt(topCat[1])})\n` : "") +
-            `\n_${data?.note || "Based on historical averages"}_`,
+            `${t("ai.prediction_intro")}\n\n` +
+            `• ${t("ai.predicted_income")}: ${fmt(data?.predictedIncome || 0)}\n` +
+            `• ${t("ai.predicted_expenses")}: ${fmt(data?.predictedTotal || 0)}\n` +
+            `• ${t("ai.estimated_savings")}: ${fmt(savings)}\n` +
+            (topCat ? `• ${t("ai.biggest_category")}: ${t(`categories.${topCat[0]?.toLowerCase()}`, topCat[0])} (${fmt(topCat[1])})\n` : "") +
+            (data?.note ? `\n_${data.note}_` : ""),
         },
       ]);
     },
-    onError: () => toast.error("Prediction failed"),
+    onError: () => toast.error(t("ai.prediction_failed")),
   });
 
   // GET /ai/subscriptions → array of { category, amount, description, occurrences, estimatedFrequency, monthlyImpact }
@@ -216,23 +217,26 @@ export default function AIAssistantPage() {
       if (subs.length === 0) {
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "No recurring subscriptions detected in your recent transactions." },
+          { role: "assistant", content: t("ai.no_subscriptions") },
         ]);
       } else {
         const list = subs
-          .map((s) => `• ${s.description || t(`categories.${s.category?.toLowerCase()}`, s.category)}: ${fmt(s.amount)} (${s.estimatedFrequency || "recurring"}, ~${fmt(s.monthlyImpact || s.amount)}/mo)`)
+          .map((s) => `• ${s.description || t(`categories.${s.category?.toLowerCase()}`, s.category)}: ${fmt(s.amount)} (${t(`frequencies.${s.estimatedFrequency}`, s.estimatedFrequency || "")}, ~${fmt(s.monthlyImpact || s.amount)}/mo)`)
           .join("\n");
         const total = subs.reduce((acc, s) => acc + (s.monthlyImpact || s.amount || 0), 0);
+        const intro = subs.length === 1
+          ? t("ai.detected_subs_one", { count: subs.length })
+          : t("ai.detected_subs_other", { count: subs.length });
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: `Detected ${subs.length} recurring expense pattern${subs.length > 1 ? "s" : ""}:\n\n${list}\n\n${t("ai.recurring_impact")}: ${fmt(total)}`,
+            content: `${intro}\n\n${list}\n\n${t("ai.recurring_impact")}: ${fmt(total)}`,
           },
         ]);
       }
     },
-    onError: () => toast.error("Subscription detection failed"),
+    onError: () => toast.error(t("ai.subscription_failed")),
   });
 
   const sendMessage = () => {
@@ -266,8 +270,8 @@ export default function AIAssistantPage() {
 
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="page-title">{t("nav.ai_assistant", "AI Assistant")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Your personal AI-powered finance advisor</p>
+          <h1 className="page-title">{t("ai.title")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("ai.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -284,7 +288,7 @@ export default function AIAssistantPage() {
               />
             ) : (
               <div className="card p-5 text-center text-sm text-gray-400 dark:text-gray-500">
-                Score unavailable — add more transactions
+                {t("ai.score_unavailable")}
               </div>
             )}
 
@@ -351,7 +355,7 @@ export default function AIAssistantPage() {
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
               <Bot size={16} className="text-blue-600" />
-              <span className="font-medium text-sm">AI Financial Assistant</span>
+              <span className="font-medium text-sm">{t("ai.title")}</span>
               <span className="ml-auto w-2 h-2 bg-green-400 rounded-full" />
             </div>
 

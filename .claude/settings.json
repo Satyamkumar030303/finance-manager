@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(ls /c/Users/satya/.claude/projects/d--Projects-Finance-manager/memory/)",
+      "Read(//c/Users/satya/.claude/projects/d--Projects-Finance-manager/memory//**)",
+      "Read(//c/Users/satya/.claude/projects/d--Projects-Finance-manager//**)",
+      "Read(//c/Users/satya/.claude//**)",
+      "Bash(cd \"/d/Projects/Finance manager/finance-frontend\" && find . -type f -name \"*.json\" | grep -E \"\\(i18n|locale|translation\\)\" | head -30)",
+      "Read(//d/d/Projects/Finance manager/**)",
+      "Bash(node -e ' *)",
+      "Read(//tmp/**)",
+      "Bash(grep -B2 -A2 \"toast\\\\\\\\.success\\\\|toast\\\\\\\\.error\" src/components/TransactionForm.jsx)"
+    ]
+  }
+}

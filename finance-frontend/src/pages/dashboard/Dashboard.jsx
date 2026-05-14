@@ -15,13 +15,7 @@ import MonthlyTrendChart from "../../components/charts/MonthlyTrendChart";
 import IncomeExpenseChart from "../../components/charts/IncomeExpenseChart";
 import SmartInsights from "../../components/SmartInsights";
 
-const PERIOD_LABELS = {
-  month: "This Month",
-  lastMonth: "Last Month",
-  year: "This Year",
-  decade: "Last Decade",
-  all: "All Time",
-};
+const PERIOD_KEYS = ["month", "lastMonth", "year", "decade", "all"];
 
 function KPICard({ label, value, icon: Icon, gradient, trend, trendLabel, loading }) {
   return (
@@ -116,15 +110,15 @@ const Dashboard = () => {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="page-title">{t("dashboard.title")}</h1>
-            <p className="page-subtitle">{PERIOD_LABELS[period]} overview</p>
+            <p className="page-subtitle">{t(`periods.${period}`)} {t("dashboard.overview")}</p>
           </div>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
             className="input w-auto text-sm"
           >
-            {Object.entries(PERIOD_LABELS).map(([val, lbl]) => (
-              <option key={val} value={val}>{lbl}</option>
+            {PERIOD_KEYS.map((val) => (
+              <option key={val} value={val}>{t(`periods.${val}`)}</option>
             ))}
           </select>
         </div>
@@ -153,7 +147,7 @@ const Dashboard = () => {
               value={format(Math.abs(savings))}
               icon={Wallet}
               gradient={savings >= 0 ? "gradient-blue" : "gradient-amber"}
-              trendLabel="savings rate"
+              trendLabel={t("insights.savings_rate").toLowerCase()}
               trend={parseFloat(savingsRate)}
             />
           </div>
@@ -203,7 +197,7 @@ const Dashboard = () => {
               className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400
                          hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
             >
-              View all <ChevronRight size={13} />
+              {t("common.view_all")} <ChevronRight size={13} />
             </Link>
           }
         >
@@ -214,9 +208,9 @@ const Dashboard = () => {
           ) : recentTransactions.length === 0 ? (
             <div className="py-8 text-center">
               <Sparkles size={32} className="mx-auto mb-3 text-gray-300 dark:text-gray-700" />
-              <p className="text-sm text-gray-400 dark:text-gray-500">No transactions yet.</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">{t("dashboard.no_transactions_yet")}</p>
               <Link to="/transactions" className="btn-primary btn-sm mt-3 inline-flex">
-                Add your first transaction
+                {t("dashboard.add_first_transaction")}
               </Link>
             </div>
           ) : (
@@ -224,10 +218,10 @@ const Dashboard = () => {
               <table className="table-base">
                 <thead>
                   <tr>
-                    <th className="table-th">Description</th>
-                    <th className="table-th">Category</th>
-                    <th className="table-th">Amount</th>
-                    <th className="table-th hidden sm:table-cell">Date</th>
+                    <th className="table-th">{t("transactions.description")}</th>
+                    <th className="table-th">{t("transactions.category")}</th>
+                    <th className="table-th">{t("transactions.amount")}</th>
+                    <th className="table-th hidden sm:table-cell">{t("transactions.date")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -237,7 +231,7 @@ const Dashboard = () => {
                         {tx.description || tx.category}
                       </td>
                       <td className="table-td">
-                        <span className="badge-gray">{tx.category}</span>
+                        <span className="badge-gray">{t(`categories.${String(tx.category || "").toLowerCase()}`, tx.category)}</span>
                       </td>
                       <td className="table-td">
                         <span className={`font-semibold ${tx.type === "income"

@@ -5,12 +5,8 @@ export const useTransactions = (filters) => {
 
   return useQuery({
     queryKey: ["transactions", filters],
-
     queryFn: () => getTransactions(filters),
-
-    initialData: [],
-
-    keepPreviousData: true
+    keepPreviousData: true,
   });
 
 };

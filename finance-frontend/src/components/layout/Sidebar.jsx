@@ -17,7 +17,7 @@ const NAV_ITEMS = (t) => [
   { to: "/recurring",     icon: RefreshCcw,       label: t("nav.recurring") },
   { to: "/reports",       icon: BarChart2,        label: t("nav.reports") },
   { to: "/ai-assistant",  icon: Bot,              label: t("nav.ai_assistant") },
-  { to: "/sms-import",    icon: MessageSquare,    label: "SMS Import" },
+  { to: "/sms-import",    icon: MessageSquare,    label: t("nav.sms_import") },
 ];
 
 function NavItem({ to, icon: Icon, label, collapsed, end, onClick }) {
@@ -88,7 +88,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
             <p className="text-sm font-bold text-white whitespace-nowrap leading-tight">Finance Manager</p>
             {user?.tier === "premium" && (
               <p className="flex items-center gap-1 text-yellow-400 text-[10px] font-medium">
-                <Sparkles size={9} /> Premium
+                <Sparkles size={9} /> {t("common.premium")}
               </p>
             )}
           </div>
@@ -107,7 +107,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           className="hidden lg:flex items-center justify-center w-6 h-6 rounded-lg
                      bg-slate-700/60 hover:bg-slate-600 text-slate-400 hover:text-white
                      transition-colors flex-shrink-0 ml-auto"
-          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={sidebarCollapsed ? t("nav.expand_sidebar") : t("nav.collapse_sidebar")}
         >
           {sidebarCollapsed
             ? <ChevronRight size={13} />
@@ -143,7 +143,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
                       text-red-400 hover:bg-red-500/15 hover:text-red-300
                       transition-all duration-150`}
-          aria-label="Logout"
+          aria-label={t("nav.logout")}
         >
           <LogOut size={18} className="flex-shrink-0" />
           <span
@@ -206,7 +206,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           onClick={onMobileClose}
           className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-white
                      hover:bg-slate-700 transition-colors z-10"
-          aria-label="Close menu"
+          aria-label={t("header.open_menu")}
         >
           <X size={16} />
         </button>
@@ -220,7 +220,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
               <p className="text-sm font-bold text-white leading-tight">Finance Manager</p>
               {user?.tier === "premium" && (
                 <p className="flex items-center gap-1 text-yellow-400 text-[10px] font-medium">
-                  <Sparkles size={9} /> Premium
+                  <Sparkles size={9} /> {t("common.premium")}
                 </p>
               )}
             </div>
